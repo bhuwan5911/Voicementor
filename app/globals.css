@@ -1,0 +1,10 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide Next.js dev overlay (bottom left 'N' icon) in development */
+#__next-route-announcer,
+[data-nextjs-dev-overlay] {
+  display: none !important;
+}
