@@ -3,14 +3,15 @@
 import { useState, useEffect } from 'react';
 
 interface Badge {
-  id: string;
+  id: number;
+  userId: number;
   name: string;
   description: string;
   icon: string;
   color: string;
-  earned: boolean;
-  dateEarned?: string;
-  level: number;
+  type: string;
+  earnedAt: string;
+  metadata?: any;
 }
 
 interface Certificate {
@@ -27,75 +28,39 @@ interface RewardSystemProps {
   onClose: () => void;
   userLevel: number;
   totalPoints: number;
+  userId?: number;
 }
 
-export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints }: RewardSystemProps) {
+export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints, userId }: RewardSystemProps) {
   const [activeTab, setActiveTab] = useState('badges');
   const [showCelebration, setShowCelebration] = useState(false);
   const [newReward, setNewReward] = useState<Badge | null>(null);
+  const [userBadges, setUserBadges] = useState<Badge[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const badges: Badge[] = [
-    {
-      id: 'starter',
-      name: 'Starter Star',
-      description: 'Complete your first quiz',
-      icon: 'ri-star-line',
-      color: 'from-yellow-400 to-orange-500',
-      earned: userLevel >= 1,
-      dateEarned: userLevel >= 1 ? '2024-01-15' : undefined,
-      level: 1
-    },
-    {
-      id: 'curious',
-      name: 'Curious Mind',
-      description: 'Answer 10 questions correctly',
-      icon: 'ri-brain-line',
-      color: 'from-blue-400 to-indigo-500',
-      earned: userLevel >= 2,
-      dateEarned: userLevel >= 2 ? '2024-01-18' : undefined,
-      level: 2
-    },
-    {
-      id: 'junior-coder',
-      name: 'Junior Coder',
-      description: 'Complete Level 3 quiz with 80%+ score',
-      icon: 'ri-code-s-slash-line',
-      color: 'from-green-400 to-emerald-500',
-      earned: userLevel >= 3,
-      dateEarned: userLevel >= 3 ? '2024-01-22' : undefined,
-      level: 3
-    },
-    {
-      id: 'voice-master',
-      name: 'Voice Master',
-      description: 'Perfect score on voice recognition quiz',
-      icon: 'ri-mic-2-line',
-      color: 'from-purple-400 to-pink-500',
-      earned: userLevel >= 5,
-      dateEarned: userLevel >= 5 ? '2024-01-28' : undefined,
-      level: 5
-    },
-    {
-      id: 'knowledge-seeker',
-      name: 'Knowledge Seeker',
-      description: 'Complete 5 different quiz categories',
-      icon: 'ri-book-open-line',
-      color: 'from-cyan-400 to-blue-500',
-      earned: userLevel >= 7,
-      dateEarned: userLevel >= 7 ? '2024-02-02' : undefined,
-      level: 7
-    },
-    {
-      id: 'coding-champion',
-      name: 'Coding Champion',
-      description: 'Reach Level 10 with consistent performance',
-      icon: 'ri-trophy-line',
-      color: 'from-gold via-yellow-400 to-orange-500',
-      earned: userLevel >= 10,
-      dateEarned: userLevel >= 10 ? '2024-02-10' : undefined,
-      level: 10
+  // Fetch user badges when component opens
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchUserBadges();
     }
-  ];
+  }, [isOpen, userId]);
+
+  const fetchUserBadges = async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/badges?userId=${userId}`);
+      if (response.ok) {
+        const badges = await response.json();
+        setUserBadges(badges);
+      }
+    } catch (error) {
+      console.error('Error fetching badges:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const certificates: Certificate[] = [
     {
@@ -123,18 +88,15 @@ export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints }
     { name: 'Voice Assistant', icon: 'ri-customer-service-2-line', earned: false }
   ];
 
-  useEffect(() => {
-    // Check for new achievements
-    const latestBadge = badges.find(badge => badge.earned && badge.level === userLevel);
-    if (latestBadge && !showCelebration) {
-      setNewReward(latestBadge);
-      setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 3000);
-    }
-  }, [userLevel]);
-
   const getNextLevelReward = () => {
-    return badges.find(badge => !badge.earned && badge.level > userLevel);
+    const allBadges = [
+      { name: 'Rising Star', level: 5, icon: 'ri-arrow-up-line', color: 'from-blue-400 to-indigo-500', description: 'Reach Level 5' },
+      { name: 'Knowledge Seeker', level: 10, icon: 'ri-book-open-line', color: 'from-green-400 to-emerald-500', description: 'Reach Level 10' },
+      { name: 'Expert Learner', level: 20, icon: 'ri-award-line', color: 'from-purple-400 to-pink-500', description: 'Reach Level 20' },
+      { name: 'Master Coder', level: 50, icon: 'ri-crown-line', color: 'from-yellow-400 via-orange-500 to-red-500', description: 'Reach Level 50' }
+    ];
+    
+    return allBadges.find(badge => badge.level > userLevel);
   };
 
   const getLevelProgress = () => {
@@ -160,6 +122,9 @@ export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints }
                   </span>
                   <span className="bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-lg text-sm font-medium">
                     {totalPoints} Points
+                  </span>
+                  <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-sm font-medium">
+                    {userBadges.length} Badges
                   </span>
                 </div>
               </div>
@@ -201,51 +166,50 @@ export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints }
             {/* Badges Tab */}
             {activeTab === 'badges' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {badges.map((badge) => (
-                    <div
-                      key={badge.id}
-                      className={`p-6 rounded-2xl border-2 transition-all transform hover:scale-105 ${
-                        badge.earned
-                          ? 'border-purple-500/30 bg-gradient-to-br from-gray-700/50 to-gray-800/50 shadow-lg shadow-purple-500/10'
-                          : 'border-gray-600 bg-gray-700/30'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                          badge.earned
-                            ? `bg-gradient-to-r ${badge.color} shadow-lg`
-                            : 'bg-gray-600'
-                        }`}>
-                          <i className={`${badge.icon} text-2xl text-white`}></i>
-                        </div>
-                        <h3 className={`font-bold mb-2 ${badge.earned ? 'text-white' : 'text-gray-400'}`}>
-                          {badge.name}
-                        </h3>
-                        <p className={`text-sm mb-3 ${badge.earned ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {badge.description}
-                        </p>
-                        {badge.earned ? (
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
+                    <p className="text-gray-400 mt-4">Loading badges...</p>
+                  </div>
+                ) : userBadges.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {userBadges.map((badge) => (
+                      <div
+                        key={badge.id}
+                        className="p-6 rounded-2xl border-2 border-purple-500/30 bg-gradient-to-br from-gray-700/50 to-gray-800/50 shadow-lg shadow-purple-500/10 transition-all transform hover:scale-105"
+                      >
+                        <div className="text-center">
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-r ${badge.color} shadow-lg`}>
+                            <i className={`${badge.icon} text-2xl text-white`}></i>
+                          </div>
+                          <h3 className="font-bold mb-2 text-white">
+                            {badge.name}
+                          </h3>
+                          <p className="text-sm mb-3 text-gray-300">
+                            {badge.description}
+                          </p>
                           <div className="space-y-2">
                             <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-xs font-medium">
                               <i className="ri-check-line mr-1"></i>
                               Earned
                             </div>
-                            {badge.dateEarned && (
-                              <div className="text-xs text-gray-400">
-                                {new Date(badge.dateEarned).toLocaleDateString()}
-                              </div>
-                            )}
+                            <div className="text-xs text-gray-400">
+                              {new Date(badge.earnedAt).toLocaleDateString()}
+                            </div>
                           </div>
-                        ) : (
-                          <div className="bg-gray-600/30 text-gray-400 px-3 py-1 rounded-lg text-xs">
-                            Level {badge.level} required
-                          </div>
-                        )}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="ri-medal-line text-2xl text-gray-400"></i>
                     </div>
-                  ))}
-                </div>
+                    <h3 className="text-xl font-semibold text-gray-400 mb-2">No Badges Yet</h3>
+                    <p className="text-gray-500">Complete quizzes and reach milestones to earn badges</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -337,7 +301,7 @@ export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints }
                 {/* Statistics */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-gray-700/50 rounded-xl p-4 text-center">
-                    <div className="text-2xl font-bold text-green-400">{badges.filter(b => b.earned).length}</div>
+                    <div className="text-2xl font-bold text-green-400">{userBadges.length}</div>
                     <div className="text-sm text-gray-400">Badges Earned</div>
                   </div>
                   <div className="bg-gray-700/50 rounded-xl p-4 text-center">

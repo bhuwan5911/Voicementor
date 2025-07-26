@@ -2,19 +2,132 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import QuizEngine from './QuizEngine';
 import RewardSystem from '../achievements/RewardSystem';
 
+interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  expertise: string;
+  languages: string[];
+}
+
+interface QuizStats {
+  level: number;
+  totalPoints: number;
+  quizzesCompleted: number;
+  accuracy: number;
+}
+
 export default function QuizPage() {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showQuiz, setShowQuiz] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
-  const [userStats, setUserStats] = useState({
-    level: 3,
-    totalPoints: 350,
-    quizzesCompleted: 12,
-    correctAnswers: 89
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userStats, setUserStats] = useState<QuizStats>({
+    level: 1,
+    totalPoints: 0,
+    quizzesCompleted: 0,
+    accuracy: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [dbConnected, setDbConnected] = useState(true);
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      // Get user from session
+      const { data: { user } } = await import('@supabase/supabase-js').then(supabase => 
+        supabase.createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_KEY!
+        ).auth.getUser()
+      );
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Fetch user profile and stats with better error handling
+      try {
+        // First get user profile
+        const profileRes = await fetch(`/api/users?email=${user.email}`);
+        
+        if (profileRes.ok) {
+          const profiles = await profileRes.json();
+          if (profiles.length > 0) {
+            const profile = profiles[0];
+            setUserProfile(profile);
+            
+            // Now get quizzes using the database user ID
+            const quizzesRes = await fetch(`/api/quizzes?userId=${profile.id}`);
+            
+            // Calculate stats from quizzes
+            if (quizzesRes.ok) {
+              const quizzes = await quizzesRes.json();
+              const totalCorrect = quizzes.reduce((sum: number, q: any) => sum + (q.correctAnswers || 0), 0);
+              const totalAnswered = quizzes.reduce((sum: number, q: any) => sum + (q.totalAnswers || 0), 0);
+              const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+              const totalPoints = quizzes.reduce((sum: number, q: any) => sum + (q.points || 0), 0);
+              const level = Math.floor(totalPoints / 100) + 1;
+              
+              setUserStats({
+                level,
+                totalPoints,
+                quizzesCompleted: quizzes.length,
+                accuracy
+              });
+            }
+          } else {
+            // User is logged in but no profile - redirect to dashboard instead of onboarding
+            router.push('/dashboard');
+            return;
+          }
+        } else {
+          // Handle API error gracefully
+          console.warn('Failed to fetch user profile, using default stats');
+          setDbConnected(false);
+          setUserStats({
+            level: 1,
+            totalPoints: 0,
+            quizzesCompleted: 0,
+            accuracy: 0
+          });
+        }
+      } catch (apiError) {
+        // Handle network/database errors gracefully
+        console.warn('Database connection issue, using default stats:', apiError);
+        setDbConnected(false);
+        setUserStats({
+          level: 1,
+          totalPoints: 0,
+          quizzesCompleted: 0,
+          accuracy: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      // Set default stats on error
+      setUserStats({
+        level: 1,
+        totalPoints: 0,
+        quizzesCompleted: 0,
+        accuracy: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const quizCategories = [
     {
@@ -23,10 +136,7 @@ export default function QuizPage() {
       description: 'Test your understanding of fundamental programming concepts',
       icon: 'ri-code-line',
       color: 'from-blue-500 to-indigo-600',
-      difficulty: 'Easy',
-      questions: 5,
-      points: 50,
-      completed: true
+      questions: 10
     },
     {
       id: 'web-development',
@@ -34,10 +144,7 @@ export default function QuizPage() {
       description: 'HTML, CSS, and JavaScript fundamentals',
       icon: 'ri-global-line',
       color: 'from-green-500 to-emerald-600',
-      difficulty: 'Medium',
-      questions: 7,
-      points: 70,
-      completed: true
+      questions: 10
     },
     {
       id: 'voice-interaction',
@@ -45,10 +152,7 @@ export default function QuizPage() {
       description: 'Master voice commands and speech recognition',
       icon: 'ri-mic-line',
       color: 'from-purple-500 to-pink-600',
-      difficulty: 'Medium',
-      questions: 6,
-      points: 60,
-      completed: false
+      questions: 10
     },
     {
       id: 'data-structures',
@@ -56,10 +160,7 @@ export default function QuizPage() {
       description: 'Arrays, objects, and data manipulation',
       icon: 'ri-database-line',
       color: 'from-cyan-500 to-blue-600',
-      difficulty: 'Hard',
-      questions: 8,
-      points: 80,
-      completed: false
+      questions: 10
     },
     {
       id: 'problem-solving',
@@ -67,10 +168,7 @@ export default function QuizPage() {
       description: 'Logic and algorithmic thinking challenges',
       icon: 'ri-puzzle-line',
       color: 'from-orange-500 to-red-600',
-      difficulty: 'Hard',
-      questions: 10,
-      points: 100,
-      completed: false
+      questions: 10
     },
     {
       id: 'career-guidance',
@@ -78,108 +176,105 @@ export default function QuizPage() {
       description: 'Tech career paths and industry knowledge',
       icon: 'ri-briefcase-line',
       color: 'from-indigo-500 to-purple-600',
-      difficulty: 'Easy',
-      questions: 5,
-      points: 50,
-      completed: false
+      questions: 10
     }
   ];
 
-  const sampleQuestions = {
-    'programming-basics': [
-      {
-        id: 1,
-        type: 'voice-mcq' as const,
-        question: 'What is HTML primarily used for?',
-        options: ['Programming logic', 'Creating web page structure', 'Database management', 'Mobile app development'],
-        correctAnswer: 'Creating web page structure',
-        difficulty: 'easy' as const,
-        points: 10,
-        translations: {} // { es: { question: '...', options: ['...'] }, ... }
-      },
-      {
-        id: 2,
-        type: 'open-voice' as const,
-        question: 'Explain what a variable is in programming and give an example.',
-        correctAnswer: 'variable stores data',
-        difficulty: 'medium' as const,
-        points: 15,
-        translations: {}
-      },
-      {
-        id: 3,
-        type: 'repeat-after-me' as const,
-        question: 'Repeat this programming concept: "A function is a reusable block of code"',
-        correctAnswer: 'A function is a reusable block of code',
-        difficulty: 'easy' as const,
-        points: 10,
-        translations: {}
-      },
-      {
-        id: 4,
-        type: 'fill-blank' as const,
-        question: 'Complete this sentence: "JavaScript is a _____ language used for web development"',
-        correctAnswer: 'programming',
-        difficulty: 'easy' as const,
-        points: 10,
-        translations: {}
-      },
-      {
-        id: 5,
-        type: 'voice-mcq' as const,
-        question: 'Which of these is NOT a programming language?',
-        options: ['Python', 'JavaScript', 'Photoshop', 'Java'],
-        correctAnswer: 'Photoshop',
-        difficulty: 'easy' as const,
-        points: 10,
-        translations: {}
-      }
-    ],
-    'web-development': [
-      {
-        id: 1,
-        type: 'voice-mcq' as const,
-        question: 'What does CSS stand for?',
-        options: ['Computer Style Sheets', 'Cascading Style Sheets', 'Creative Style System', 'Code Style Standards'],
-        correctAnswer: 'Cascading Style Sheets',
-        difficulty: 'easy' as const,
-        points: 10,
-        translations: {}
-      },
-      {
-        id: 2,
-        type: 'open-voice' as const,
-        question: 'Describe the purpose of JavaScript in web development.',
-        correctAnswer: 'JavaScript adds interactivity',
-        difficulty: 'medium' as const,
-        points: 15,
-        translations: {}
-      }
-    ]
-  };
+  const difficulties = [
+    { id: 'easy', name: 'Easy', color: 'from-green-500 to-emerald-600', points: 10 },
+    { id: 'medium', name: 'Medium', color: 'from-yellow-500 to-orange-600', points: 15 },
+    { id: 'hard', name: 'Hard', color: 'from-red-500 to-pink-600', points: 20 }
+  ];
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+    { code: 'ja', name: '日本語', flag: '🇯🇵' },
+    { code: 'ko', name: '한국어', flag: '🇰🇷' }
+  ];
 
   const startQuiz = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setShowQuiz(true);
   };
 
-  const handleQuizComplete = (score: number, totalQuestions: number) => {
-    const newPoints = userStats.totalPoints + score;
-    const newLevel = Math.floor(newPoints / 100) + 1;
-    
-    setUserStats(prev => ({
-      ...prev,
-      totalPoints: newPoints,
-      level: newLevel,
-      quizzesCompleted: prev.quizzesCompleted + 1,
-      correctAnswers: prev.correctAnswers + Math.floor((score / (totalQuestions * 15)) * totalQuestions)
-    }));
-    
-    setShowQuiz(false);
-    
-    // Show celebration for level up
-    if (newLevel > userStats.level) {
-      setTimeout(() => setShowRewards(true), 1000);
+  const handleQuizComplete = async (score: number, totalQuestions: number, correctAnswers: number) => {
+    if (!userProfile) return;
+
+    try {
+      // Save quiz results to database
+      const quizData = {
+        userId: userProfile.id,
+        question: `Quiz completed for ${selectedCategory}`,
+        answer: `Score: ${score}/${totalQuestions * 20}`,
+        category: selectedCategory,
+        difficulty: selectedDifficulty,
+        language: selectedLanguage,
+        options: [],
+        type: 'quiz',
+        points: score,
+        correctAnswers: correctAnswers,
+        totalAnswers: totalQuestions
+      };
+
+      try {
+        await fetch('/api/quizzes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(quizData)
+        });
+
+        // Fetch updated quiz data to check for badges
+        const updatedQuizzesRes = await fetch(`/api/quizzes?userId=${userProfile.id}`);
+        if (updatedQuizzesRes.ok) {
+          const updatedQuizzes = await updatedQuizzesRes.json();
+
+          // Import and use badge service
+          const { calculateUserStats, checkAndAwardBadges } = await import('@/lib/badgeService');
+          const userStats = calculateUserStats(updatedQuizzes, userProfile.id);
+          const newBadges = await checkAndAwardBadges(userStats);
+
+          // Update local stats
+          const newPoints = userStats.totalPoints;
+          const newLevel = userStats.level;
+          
+          setUserStats({
+            level: newLevel,
+            totalPoints: newPoints,
+            quizzesCompleted: userStats.quizzesCompleted,
+            accuracy: userStats.accuracy
+          });
+          
+          // Show celebration for new badges or level up
+          if (newBadges.length > 0 || newLevel > userStats.level) {
+            setTimeout(() => setShowRewards(true), 1000);
+          }
+        }
+      } catch (apiError) {
+        console.warn('Failed to save quiz results to database:', apiError);
+        // Still update local stats even if database save fails
+        const newPoints = userStats.totalPoints + score;
+        const newLevel = Math.floor(newPoints / 100) + 1;
+        
+        setUserStats(prev => ({
+          level: newLevel,
+          totalPoints: newPoints,
+          quizzesCompleted: prev.quizzesCompleted + 1,
+          accuracy: prev.accuracy // Keep existing accuracy
+        }));
+      }
+      
+      setShowQuiz(false);
+    } catch (error) {
+      console.error('Error in quiz completion:', error);
+      // Still close quiz even if there's an error
+      setShowQuiz(false);
     }
   };
 
@@ -191,6 +286,28 @@ export default function QuizPage() {
       default: return 'text-gray-400 bg-gray-500/20';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
+          <p className="text-white mt-4">Loading quiz data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
+          <p className="text-white mt-4">Setting up your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
@@ -214,10 +331,10 @@ export default function QuizPage() {
               </button>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white text-sm font-bold">S</span>
+                  <span className="text-white text-sm font-bold">{userProfile.name.charAt(0).toUpperCase()}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-semibold">Sameer</div>
+                  <div className="text-white font-semibold">{userProfile.name}</div>
                   <div className="text-purple-400 text-sm">Level {userStats.level}</div>
                 </div>
               </div>
@@ -234,6 +351,19 @@ export default function QuizPage() {
           </h1>
           <p className="text-xl text-gray-300 mb-8">Challenge yourself with interactive voice quizzes and earn amazing rewards</p>
           
+          {/* Database Connectivity Warning */}
+          {!dbConnected && (
+            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-4 mb-8 max-w-2xl mx-auto">
+              <div className="flex items-center justify-center space-x-3">
+                <i className="ri-wifi-off-line text-yellow-400 text-xl"></i>
+                <div className="text-center">
+                  <p className="text-yellow-300 font-semibold">Database Connection Issue</p>
+                  <p className="text-yellow-200/80 text-sm">Your progress will be saved locally. Please check your internet connection.</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
@@ -249,7 +379,7 @@ export default function QuizPage() {
               <div className="text-gray-400 text-sm">Quizzes Done</div>
             </div>
             <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-yellow-500/20 shadow-lg shadow-yellow-500/10">
-              <div className="text-3xl font-bold text-yellow-400 mb-2">{Math.round((userStats.correctAnswers / (userStats.quizzesCompleted * 5)) * 100) || 0}%</div>
+              <div className="text-3xl font-bold text-yellow-400 mb-2">{userStats.accuracy}%</div>
               <div className="text-gray-400 text-sm">Accuracy</div>
             </div>
           </div>
@@ -266,40 +396,24 @@ export default function QuizPage() {
                 <div className={`w-16 h-16 bg-gradient-to-r ${category.color} rounded-2xl flex items-center justify-center shadow-lg`}>
                   <i className={`${category.icon} text-2xl text-white`}></i>
                 </div>
-                {category.completed && (
-                  <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-sm font-medium">
-                    <i className="ri-check-line mr-1"></i>
-                    Completed
-                  </div>
-                )}
               </div>
               
               <h3 className="text-2xl font-bold text-white mb-3">{category.title}</h3>
               <p className="text-gray-300 mb-6">{category.description}</p>
               
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <span className={`px-3 py-1 rounded-lg text-sm font-medium ${getDifficultyColor(category.difficulty)}`}>
-                    {category.difficulty}
-                  </span>
-                  <span className="text-gray-400 text-sm">{category.questions} questions</span>
-                </div>
-                <span className="text-purple-400 font-bold">{category.points} pts</span>
+                <span className="text-gray-400 text-sm">{category.questions} questions</span>
               </div>
               
               <button
                 onClick={() => startQuiz(category.id)}
-                className={`w-full py-4 px-6 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg whitespace-nowrap cursor-pointer ${
-                  category.completed
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-gray-300 hover:from-gray-500 hover:to-gray-600'
-                    : `bg-gradient-to-r ${category.color} text-white hover:shadow-xl`
-                }`}
+                className={`w-full py-4 px-6 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg whitespace-nowrap cursor-pointer bg-gradient-to-r ${category.color} text-white hover:shadow-xl`}
                 style={{
-                  boxShadow: !category.completed ? `0 10px 30px ${category.color.includes('blue') ? 'rgba(59, 130, 246, 0.3)' : category.color.includes('green') ? 'rgba(16, 185, 129, 0.3)' : category.color.includes('purple') ? 'rgba(147, 51, 234, 0.3)' : category.color.includes('cyan') ? 'rgba(6, 182, 212, 0.3)' : category.color.includes('orange') ? 'rgba(249, 115, 22, 0.3)' : 'rgba(147, 51, 234, 0.3)'}` : undefined
+                  boxShadow: `0 10px 30px ${category.color.includes('blue') ? 'rgba(59, 130, 246, 0.3)' : category.color.includes('green') ? 'rgba(16, 185, 129, 0.3)' : category.color.includes('purple') ? 'rgba(147, 51, 234, 0.3)' : category.color.includes('cyan') ? 'rgba(6, 182, 212, 0.3)' : category.color.includes('orange') ? 'rgba(249, 115, 22, 0.3)' : 'rgba(147, 51, 234, 0.3)'}`
                 }}
               >
-                <i className={`${category.completed ? 'ri-refresh-line' : 'ri-play-line'} mr-2`}></i>
-                {category.completed ? 'Retake Quiz' : 'Start Quiz'}
+                <i className="ri-play-line mr-2"></i>
+                Start Quiz
               </button>
             </div>
           ))}
@@ -343,7 +457,9 @@ export default function QuizPage() {
       {/* Quiz Engine Modal */}
       {showQuiz && selectedCategory && (
         <QuizEngine
-          questions={sampleQuestions[selectedCategory as keyof typeof sampleQuestions] || sampleQuestions['programming-basics']}
+          category={selectedCategory}
+          difficulty={selectedDifficulty}
+          language={selectedLanguage}
           onQuizComplete={handleQuizComplete}
           onClose={() => setShowQuiz(false)}
         />
@@ -355,6 +471,7 @@ export default function QuizPage() {
         onClose={() => setShowRewards(false)}
         userLevel={userStats.level}
         totalPoints={userStats.totalPoints}
+        userId={userProfile?.id}
       />
     </div>
   );

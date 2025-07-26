@@ -1,4 +1,16 @@
 {
+  "app\\quiz\\page.tsx -> @/lib/badgeService": {
+    "id": "app\\quiz\\page.tsx -> @/lib/badgeService",
+    "files": [
+      "static/chunks/_app-pages-browser_lib_badgeService_ts.js"
+    ]
+  },
+  "app\\quiz\\page.tsx -> @supabase/supabase-js": {
+    "id": "app\\quiz\\page.tsx -> @supabase/supabase-js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_supabase_supabase-js_dist_module_index_js.js"
+    ]
+  },
   "node_modules\\@supabase\\auth-js\\dist\\module\\lib\\helpers.js -> @supabase/node-fetch": {
     "id": "node_modules\\@supabase\\auth-js\\dist\\module\\lib\\helpers.js -> @supabase/node-fetch",
     "files": []

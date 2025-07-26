@@ -4,9 +4,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  devIndicators: {
-    buildActivity: false,
-  },
   typescript: {
     // ignoreBuildErrors: true,
   },

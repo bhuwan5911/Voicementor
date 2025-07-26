@@ -14,13 +14,18 @@ datasource db {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  name         String
-  email        String         @unique
-  quizzes      Quiz[]
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  profile     Profile?
+  quizzes     Quiz[]
   voiceRecords VoiceRecord[]
   achievements Achievement[]
-  profile      Profile?
+  badges       Badge[]
 }
 
 model Quiz {
@@ -30,6 +35,17 @@ model Quiz {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  // New fields for real quiz data
+  category   String
+  difficulty String
+  language   String
+  options    String[]
+  type       String
+  points     Int
+  audioUrl   String?
+  // Accuracy tracking
+  correctAnswers Int   @default(0)
+  totalAnswers   Int   @default(0)
 }
 
 model VoiceRecord {
@@ -50,8 +66,31 @@ model Achievement {
 
 model Profile {
   id        Int      @id @default(autoincrement())
+  phone     String?
+  location  String?
+  languages String[]
+  age       Int?
+  education String?
+  interests String[]
+  goals     String?
+  expertise String?
+  experience String?
   bio       String?
+  availability String?
   avatarUrl String?
   userId    Int     @unique
   user      User    @relation(fields: [userId], references: [id])
+}
+
+model Badge {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  description String
+  icon        String
+  color       String
+  type        String   // 'quiz', 'level', 'streak', 'category', 'accuracy'
+  earnedAt    DateTime @default(now())
+  metadata    Json?    // Store additional data like score, category, etc.
 }

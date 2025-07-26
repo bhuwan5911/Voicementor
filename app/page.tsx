@@ -21,9 +21,19 @@ function LoginModal({ open, onClose }: { open: boolean, onClose: () => void }) {
         <p className="mb-8 text-gray-500 text-lg">Please sign in to continue</p>
         <button
           onClick={signInWithGoogle}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-lg font-semibold py-3 rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-200"
+          className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-lg font-semibold py-3 rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-200"
         >
-          <svg className="w-6 h-6" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M43.6 20.5H42V20H24v8h11.3C34.7 32.1 29.8 35 24 35c-6.1 0-11.3-4.1-13.1-9.6-0.4-1-0.6-2-0.6-3.1s0.2-2.1 0.6-3.1C12.7 12.1 17.9 8 24 8c3.1 0 6 1.1 8.2 2.9l6.2-6.2C34.6 1.7 29.6 0 24 0 14.8 0 6.7 5.8 2.7 14.1c-0.6 1.2-0.9 2.6-0.9 4s0.3 2.8 0.9 4C6.7 42.2 14.8 48 24 48c5.6 0 10.6-1.7 14.4-4.7l-6.2-6.2C30 38.9 27.1 40 24 40c-5.8 0-10.7-2.9-13.3-7.5C10.7 35.1 17.1 40 24 40c5.8 0 10.7-2.9 13.3-7.5C44.7 29.1 48 24.1 48 18.1c0-1.4-0.3-2.8-0.9-4C47.3 5.8 39.2 0 30 0c-5.6 0-10.6 1.7-14.4 4.7l6.2 6.2C18 9.1 21 8 24 8c6.1 0 11.3 4.1 13.1 9.6 0.4 1 0.6 2 0.6 3.1s-0.2 2.1-0.6 3.1C35.3 35.9 30.1 40 24 40c-3.1 0-6-1.1-8.2-2.9l-6.2 6.2C13.4 46.3 18.4 48 24 48c9.2 0 17.3-5.8 21.3-14.1 0.6-1.2 0.9-2.6 0.9-4s-0.3-2.8-0.9-4z"/></g></svg>
+          <span className="bg-white rounded-full p-1 flex items-center justify-center">
+            <svg className="w-6 h-6" viewBox="0 0 48 48">
+              <g>
+                <path fill="#4285F4" d="M24 9.5c3.54 0 6.36 1.46 7.82 2.68l5.8-5.8C34.64 3.13 29.74 1 24 1 14.82 1 6.7 6.82 2.7 15.1l6.7 5.2C11.7 13.82 17.3 9.5 24 9.5z"/>
+                <path fill="#34A853" d="M46.1 24.5c0-1.64-.15-3.22-.43-4.74H24v9.04h12.4c-.54 2.9-2.18 5.36-4.64 7.04l7.2 5.6C43.3 37.18 46.1 31.36 46.1 24.5z"/>
+                <path fill="#FBBC05" d="M9.4 28.3c-1.1-2.1-1.7-4.5-1.7-7.1s.6-5 1.7-7.1l-6.7-5.2C1.1 13.18 0 18.64 0 24.5s1.1 11.32 2.7 15.1l6.7-5.2z"/>
+                <path fill="#EA4335" d="M24 46c6.48 0 11.92-2.14 15.9-5.82l-7.2-5.6c-2.02 1.36-4.6 2.16-8.7 2.16-6.7 0-12.3-4.32-14.6-10.1l-6.7 5.2C6.7 41.18 14.82 46 24 46z"/>
+                <path fill="none" d="M0 0h48v48H0z"/>
+              </g>
+            </svg>
+          </span>
           Sign in with Google
         </button>
         <button
@@ -46,17 +56,72 @@ function LoginModal({ open, onClose }: { open: boolean, onClose: () => void }) {
   );
 }
 
+function ProfileDropdown({ user, onLogout }: { user: any, onLogout: () => void }) {
+  const [open, setOpen] = useState(false);
+  const initials = user?.user_metadata?.full_name
+    ? user.user_metadata.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.email?.slice(0, 2).toUpperCase();
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 focus:outline-none"
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="avatar" className="w-9 h-9 rounded-full border-2 border-blue-400" />
+        ) : (
+          <span className="w-9 h-9 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-400">
+            {initials}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg py-4 z-50 border border-gray-200">
+          <div className="px-4 pb-2 flex flex-col items-center">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="avatar" className="w-14 h-14 rounded-full mb-2 border-2 border-blue-400" />
+            ) : (
+              <span className="w-14 h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl mb-2 border-2 border-blue-400">
+                {initials}
+              </span>
+            )}
+            <div className="font-semibold text-gray-900">{user.user_metadata?.full_name || user.email}</div>
+            <div className="text-gray-500 text-sm mb-2">{user.email}</div>
+          </div>
+          <button
+            onClick={onLogout}
+            className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 font-semibold transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsLoggedIn(!!user);
+      setUser(user);
     };
     checkUser();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user);
+      setUser(session?.user || null);
+      if (session?.user) setShowLogin(false);
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleProtectedClick = (url: string) => {
@@ -65,6 +130,14 @@ export default function Home() {
     } else {
       router.push(url);
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsLoggedIn(false);
+    setShowLogin(false);
+    router.push('/');
   };
 
   return (
@@ -81,12 +154,16 @@ export default function Home() {
           >
             Dashboard
           </button>
-          <button
-            onClick={() => setShowLogin(true)}
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:from-cyan-600 hover:to-blue-700 transition-colors"
-          >
-            Sign Up / Login
-          </button>
+          {isLoggedIn && user ? (
+            <ProfileDropdown user={user} onLogout={handleLogout} />
+          ) : (
+              <button
+              onClick={() => setShowLogin(true)}
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:from-cyan-600 hover:to-blue-700 transition-colors"
+              >
+              Sign Up / Login
+              </button>
+          )}
         </div>
       </nav>
       {/* Hero Section */}
@@ -171,55 +248,72 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: 'ri-mic-line',
+                icon: (
+                  <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 mb-4">
+                    <i className="ri-mic-line text-2xl text-white"></i>
+                  </span>
+                ),
                 title: 'Voice-First Communication',
                 description: 'Speak naturally in your native language. AI handles the rest.',
-                color: 'from-cyan-500 to-blue-600',
-                shadowColor: 'shadow-cyan-500/20'
               },
               {
-                icon: 'ri-translate-2-line',
+                icon: (
+                  <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 mb-4">
+                    <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <g>
+                        <path d="M4 5h7M7.5 5v14M4 19h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M14 12c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.21-1.79 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M16 16l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <text x="13" y="10" fontSize="6" fill="currentColor" fontFamily="Arial" fontWeight="bold">A</text>
+                      </g>
+                    </svg>
+                  </span>
+                ),
                 title: 'Smart Translation',
                 description: 'Real-time translation between 15+ Indian languages.',
-                color: 'from-green-500 to-emerald-600',
-                shadowColor: 'shadow-green-500/20'
               },
               {
-                icon: 'ri-trophy-line',
+                icon: (
+                  <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 mb-4">
+                    <i className="ri-trophy-line text-2xl text-white"></i>
+                  </span>
+                ),
                 title: 'Gamified Learning',
                 description: 'Earn badges, points, and certificates as you progress.',
-                color: 'from-yellow-500 to-orange-600',
-                shadowColor: 'shadow-yellow-500/20'
               },
               {
-                icon: 'ri-group-line',
+                icon: (
+                  <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 mb-4">
+                    <i className="ri-group-line text-2xl text-white"></i>
+                  </span>
+                ),
                 title: 'Expert Mentors',
                 description: 'Connect with industry professionals who understand your journey.',
-                color: 'from-purple-500 to-pink-600',
-                shadowColor: 'shadow-purple-500/20'
               },
               {
-                icon: 'ri-questionnaire-line',
+                icon: (
+                  <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4">
+                    <i className="ri-questionnaire-line text-2xl text-white"></i>
+                  </span>
+                ),
                 title: 'Interactive Quizzes',
                 description: 'Test your knowledge with voice-based quizzes and challenges.',
-                color: 'from-indigo-500 to-purple-600',
-                shadowColor: 'shadow-indigo-500/20'
               },
               {
-                icon: 'ri-smartphone-line',
+                icon: (
+                  <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 mb-4">
+                    <i className="ri-smartphone-line text-2xl text-white"></i>
+                  </span>
+                ),
                 title: 'Works Everywhere',
                 description: 'Optimized for basic smartphones and poor internet.',
-                color: 'from-teal-500 to-cyan-600',
-                shadowColor: 'shadow-teal-500/20'
               }
             ].map((feature, index) => (
               <div
                 key={index}
                 className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-purple-500/30 transition-all duration-300 transform hover:scale-105 shadow-xl"
               >
-                <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg ${feature.shadowColor}`}>
-                  <i className={`${feature.icon} text-2xl text-white`}></i>
-                </div>
+                {feature.icon}
                 <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
                 <p className="text-white">{feature.description}</p>
               </div>

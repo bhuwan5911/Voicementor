@@ -30,6 +30,8 @@ export default function Onboarding() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showTranslationTools, setShowTranslationTools] = useState(false);
 
+  const router = useRouter(); // Initialize useRouter
+
   const availableLanguages = ['Hindi', 'English', 'Gujarati', 'Marathi', 'Tamil', 'Bengali', 'Telugu', 'Punjabi'];
   const studentInterests = ['Web Development', 'Mobile Development', 'Data Science', 'AI/ML', 'Cybersecurity', 'UI/UX Design', 'DevOps', 'Game Development'];
   const mentorExpertise = ['Web Development', 'Mobile Development', 'Data Science', 'AI/ML', 'Cybersecurity', 'UI/UX Design', 'DevOps', 'Product Management'];
@@ -51,37 +53,62 @@ export default function Onboarding() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      // Get current user from session
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_KEY!
+      );
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Structure the data properly for the API
+      const userData = {
+        email: user.email,
+        name: formData.name,
+        phone: formData.phone,
+        location: formData.location,
+        languages: formData.languages,
+        age: formData.age,
+        education: formData.education,
+        interests: formData.interests,
+        goals: formData.goals,
+        expertise: formData.expertise,
+        experience: formData.experience,
+        bio: formData.bio,
+        availability: formData.availability
+      };
+
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to submit form');
+      }
+      
+      setIsSubmitting(false);
+      router.push('/features');
+    } catch (err) {
+      console.error('Form submission error:', err);
+      alert('There was an error submitting the form. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
 
   if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-6">
-        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-lg text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i className="ri-check-line text-2xl text-green-600"></i>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to VoiceBridge!</h2>
-          <p className="text-gray-600 mb-8">
-            {userType === 'student' ? 
-              'Your profile has been created. We\'ll match you with the best mentors based on your interests and goals.' :
-              'Your mentor profile is under review. We\'ll notify you once approved and ready to connect with students.'
-            }
-          </p>
-          <Link href={userType === 'student' ? '/dashboard' : '/dashboard'} 
-                className="bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-colors inline-block whitespace-nowrap cursor-pointer">
-            {userType === 'student' ? 'Go to Dashboard' : 'Go to Dashboard'}
-          </Link>
-        </div>
-      </div>
-    );
+    return null; // Remove the confirmation UI
   }
 
   return (
