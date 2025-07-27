@@ -33,15 +33,29 @@ export async function GET(request: Request) {
 
 // POST create a new quiz
 export async function POST(request: Request) {
-  const data = await request.json();
-  const quiz = await prisma.quiz.create({
-    data: {
-      question: data.question,
-      answer: data.answer,
-      userId: data.userId
-    }
-  });
-  return NextResponse.json(quiz);
+  try {
+    const data = await request.json();
+    const quiz = await prisma.quiz.create({
+      data: {
+        question: data.question,
+        answer: data.answer,
+        userId: data.userId,
+        category: data.category || 'voice-technology',
+        difficulty: data.difficulty || 'easy',
+        language: data.language || 'en',
+        options: JSON.stringify(data.options || []),
+        type: data.type || 'voice-mcq',
+        points: data.points || 10,
+        audioUrl: data.audioUrl || null,
+        correctAnswers: data.correctAnswers || 0,
+        totalAnswers: data.totalAnswers || 0,
+      }
+    });
+    return NextResponse.json(quiz);
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    return NextResponse.json({ error: 'Failed to create quiz' }, { status: 500 });
+  }
 }
 
 // DELETE all quizzes for a user

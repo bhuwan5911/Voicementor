@@ -301,7 +301,7 @@ export async function checkAndAwardBadges(userStats: UserStats): Promise<string[
             icon: badgeDef.icon,
             color: badgeDef.color,
             type: badgeDef.type,
-            metadata: badgeDef.metadata
+            metadata: badgeDef.metadata ? JSON.stringify(badgeDef.metadata) : null
           })
         });
         

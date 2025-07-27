@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import QuizEngine from './QuizEngine';
@@ -21,6 +21,69 @@ interface QuizStats {
   accuracy: number;
 }
 
+// Memoized loading component
+const LoadingSpinner = memo(() => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
+    <div className="text-center">
+      <div className="loading-spinner w-12 h-12 mx-auto"></div>
+      <p className="text-white mt-4 mobile-text">Loading quiz data...</p>
+    </div>
+  </div>
+));
+
+LoadingSpinner.displayName = 'LoadingSpinner';
+
+// Memoized category card component
+const CategoryCard = memo(({ 
+  category, 
+  onStartQuiz 
+}: { 
+  category: any; 
+  onStartQuiz: (categoryId: string) => void; 
+}) => (
+  <div className="card-mobile mobile-optimized">
+    <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r ${category.color} rounded-2xl flex items-center justify-center shadow-lg`}>
+        <i className={`${category.icon} text-xl sm:text-2xl text-white`}></i>
+      </div>
+    </div>
+    
+    <h3 className="mobile-text font-bold text-white mb-3">{category.title}</h3>
+    <p className="text-gray-300 mb-4 sm:mb-6 mobile-text">{category.description}</p>
+    
+    <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <span className="text-gray-400 text-xs sm:text-sm">{category.questions} questions</span>
+    </div>
+    
+    <button
+      onClick={() => onStartQuiz(category.id)}
+      className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg whitespace-nowrap cursor-pointer bg-gradient-to-r ${category.color} text-white hover:shadow-xl mobile-button`}
+      style={{
+        boxShadow: `0 10px 30px ${category.color.includes('blue') ? 'rgba(59, 130, 246, 0.3)' : category.color.includes('green') ? 'rgba(16, 185, 129, 0.3)' : category.color.includes('purple') ? 'rgba(147, 51, 234, 0.3)' : category.color.includes('cyan') ? 'rgba(6, 182, 212, 0.3)' : category.color.includes('orange') ? 'rgba(249, 115, 22, 0.3)' : 'rgba(147, 51, 234, 0.3)'}`
+      }}
+    >
+      <i className="ri-play-line mr-2"></i>
+      Start Quiz
+    </button>
+  </div>
+));
+
+CategoryCard.displayName = 'CategoryCard';
+
+// Memoized stats card component
+const StatsCard = memo(({ title, value, color }: { 
+  title: string; 
+  value: string | number; 
+  color: string; 
+}) => (
+  <div className={`bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl mobile-padding border ${color} shadow-lg`}>
+    <div className={`text-2xl sm:text-3xl font-bold mb-2`}>{value}</div>
+    <div className="text-gray-400 text-xs sm:text-sm">{title}</div>
+  </div>
+));
+
+StatsCard.displayName = 'StatsCard';
+
 export default function QuizPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -38,12 +101,8 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [dbConnected, setDbConnected] = useState(true);
 
-  // Fetch user data on component mount
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
+  // Optimized data fetching with error handling
+  const fetchUserData = useCallback(async () => {
     try {
       // Get user from session
       const { data: { user } } = await import('@supabase/supabase-js').then(supabase => 
@@ -127,14 +186,18 @@ export default function QuizPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   const quizCategories = [
     {
       id: 'programming-basics',
       title: 'Programming Basics',
       description: 'Test your understanding of fundamental programming concepts',
-      icon: 'ri-code-line',
+      icon: 'ri-code-s-slash-line',
       color: 'from-blue-500 to-indigo-600',
       questions: 10
     },
@@ -142,7 +205,7 @@ export default function QuizPage() {
       id: 'web-development',
       title: 'Web Development',
       description: 'HTML, CSS, and JavaScript fundamentals',
-      icon: 'ri-global-line',
+      icon: 'ri-html5-line',
       color: 'from-green-500 to-emerald-600',
       questions: 10
     },
@@ -150,7 +213,7 @@ export default function QuizPage() {
       id: 'voice-interaction',
       title: 'Voice Interaction',
       description: 'Master voice commands and speech recognition',
-      icon: 'ri-mic-line',
+      icon: 'ri-mic-2-line',
       color: 'from-purple-500 to-pink-600',
       questions: 10
     },
@@ -158,7 +221,7 @@ export default function QuizPage() {
       id: 'data-structures',
       title: 'Data Structures',
       description: 'Arrays, objects, and data manipulation',
-      icon: 'ri-database-line',
+      icon: 'ri-stack-line',
       color: 'from-cyan-500 to-blue-600',
       questions: 10
     },
@@ -166,7 +229,7 @@ export default function QuizPage() {
       id: 'problem-solving',
       title: 'Problem Solving',
       description: 'Logic and algorithmic thinking challenges',
-      icon: 'ri-puzzle-line',
+      icon: 'ri-lightbulb-line',
       color: 'from-orange-500 to-red-600',
       questions: 10
     },
@@ -174,37 +237,18 @@ export default function QuizPage() {
       id: 'career-guidance',
       title: 'Career Guidance',
       description: 'Tech career paths and industry knowledge',
-      icon: 'ri-briefcase-line',
+      icon: 'ri-user-star-line',
       color: 'from-indigo-500 to-purple-600',
       questions: 10
     }
   ];
 
-  const difficulties = [
-    { id: 'easy', name: 'Easy', color: 'from-green-500 to-emerald-600', points: 10 },
-    { id: 'medium', name: 'Medium', color: 'from-yellow-500 to-orange-600', points: 15 },
-    { id: 'hard', name: 'Hard', color: 'from-red-500 to-pink-600', points: 20 }
-  ];
-
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-    { code: 'ja', name: '日本語', flag: '🇯🇵' },
-    { code: 'ko', name: '한국어', flag: '🇰🇷' }
-  ];
-
-  const startQuiz = (categoryId: string) => {
+  const startQuiz = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId);
     setShowQuiz(true);
-  };
+  }, []);
 
-  const handleQuizComplete = async (score: number, totalQuestions: number, correctAnswers: number) => {
+  const handleQuizComplete = useCallback(async (score: number, totalQuestions: number, correctAnswers: number) => {
     if (!userProfile) return;
 
     try {
@@ -269,73 +313,50 @@ export default function QuizPage() {
           accuracy: prev.accuracy // Keep existing accuracy
         }));
       }
-      
+    
       setShowQuiz(false);
     } catch (error) {
       console.error('Error in quiz completion:', error);
       // Still close quiz even if there's an error
       setShowQuiz(false);
     }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
-      case 'easy': return 'text-green-400 bg-green-500/20';
-      case 'medium': return 'text-yellow-400 bg-yellow-500/20';
-      case 'hard': return 'text-red-400 bg-red-500/20';
-      default: return 'text-gray-400 bg-gray-500/20';
-    }
-  };
+  }, [userProfile, selectedCategory, selectedDifficulty, selectedLanguage, userStats]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
-          <p className="text-white mt-4">Loading quiz data...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!userProfile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
-          <p className="text-white mt-4">Setting up your profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
       {/* Navigation */}
       <nav className="bg-gray-800/80 backdrop-blur-sm border-b border-purple-500/20">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto mobile-padding">
           <div className="flex items-center justify-between">
-            <Link href="/" className="font-pacifico text-3xl bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+            <Link href="/" className="font-pacifico mobile-heading bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
               VoiceBridge
             </Link>
-            <div className="flex items-center space-x-6">
-              <Link href="/dashboard" className="text-gray-300 hover:text-cyan-400 transition-colors font-medium">
+            <div className="flex items-center space-x-4 sm:space-x-6">
+              <Link href="/dashboard" className="text-gray-300 hover:text-cyan-400 transition-colors font-medium mobile-text">
                 Dashboard
               </Link>
               <button
                 onClick={() => setShowRewards(true)}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all shadow-lg shadow-purple-500/25 whitespace-nowrap cursor-pointer"
+                className="btn-secondary"
               >
                 <i className="ri-trophy-line mr-2"></i>
-                My Rewards
+                <span className="hidden sm:inline">My Rewards</span>
               </button>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white text-sm font-bold">{userProfile.name.charAt(0).toUpperCase()}</span>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-white text-xs sm:text-sm font-bold">{userProfile.name.charAt(0).toUpperCase()}</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-white font-semibold">{userProfile.name}</div>
-                  <div className="text-purple-400 text-sm">Level {userStats.level}</div>
+                <div className="text-right hidden sm:block">
+                  <div className="text-white font-semibold mobile-text">{userProfile.name}</div>
+                  <div className="text-purple-400 text-xs sm:text-sm">Level {userStats.level}</div>
                 </div>
               </div>
             </div>
@@ -343,100 +364,81 @@ export default function QuizPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto mobile-padding">
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-6">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="mobile-heading font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-4 sm:mb-6">
             Test Your Knowledge
           </h1>
-          <p className="text-xl text-gray-300 mb-8">Challenge yourself with interactive voice quizzes and earn amazing rewards</p>
+          <p className="mobile-text text-gray-300 mb-6 sm:mb-8">Challenge yourself with interactive voice quizzes and earn amazing rewards</p>
           
           {/* Database Connectivity Warning */}
           {!dbConnected && (
-            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-4 mb-8 max-w-2xl mx-auto">
+            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl mobile-padding mb-6 sm:mb-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center space-x-3">
-                <i className="ri-wifi-off-line text-yellow-400 text-xl"></i>
+                <i className="ri-wifi-off-line text-yellow-400 text-lg sm:text-xl"></i>
                 <div className="text-center">
-                  <p className="text-yellow-300 font-semibold">Database Connection Issue</p>
-                  <p className="text-yellow-200/80 text-sm">Your progress will be saved locally. Please check your internet connection.</p>
+                  <p className="text-yellow-300 font-semibold mobile-text">Database Connection Issue</p>
+                  <p className="text-yellow-200/80 text-xs sm:text-sm">Your progress will be saved locally. Please check your internet connection.</p>
                 </div>
               </div>
             </div>
           )}
           
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
-              <div className="text-3xl font-bold text-cyan-400 mb-2">{userStats.level}</div>
-              <div className="text-gray-400 text-sm">Current Level</div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20 shadow-lg shadow-purple-500/10">
-              <div className="text-3xl font-bold text-purple-400 mb-2">{userStats.totalPoints}</div>
-              <div className="text-gray-400 text-sm">Total Points</div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-green-500/20 shadow-lg shadow-green-500/10">
-              <div className="text-3xl font-bold text-green-400 mb-2">{userStats.quizzesCompleted}</div>
-              <div className="text-gray-400 text-sm">Quizzes Done</div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-yellow-500/20 shadow-lg shadow-yellow-500/10">
-              <div className="text-3xl font-bold text-yellow-400 mb-2">{userStats.accuracy}%</div>
-              <div className="text-gray-400 text-sm">Accuracy</div>
-            </div>
+          <div className="mobile-grid gap-4 sm:gap-6 max-w-4xl mx-auto">
+            <StatsCard 
+              title="Current Level" 
+              value={userStats.level} 
+              color="border-cyan-500/20 shadow-cyan-500/10" 
+            />
+            <StatsCard 
+              title="Total Points" 
+              value={userStats.totalPoints} 
+              color="border-purple-500/20 shadow-purple-500/10" 
+            />
+            <StatsCard 
+              title="Quizzes Done" 
+              value={userStats.quizzesCompleted} 
+              color="border-green-500/20 shadow-green-500/10" 
+            />
+            <StatsCard 
+              title="Accuracy" 
+              value={`${userStats.accuracy}%`} 
+              color="border-yellow-500/20 shadow-yellow-500/10" 
+            />
           </div>
         </div>
 
         {/* Quiz Categories */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="mobile-grid gap-6 sm:gap-8">
           {quizCategories.map((category) => (
-            <div
+            <CategoryCard
               key={category.id}
-              className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-3xl p-8 border border-gray-700/50 hover:border-purple-500/30 transition-all duration-300 transform hover:scale-105 shadow-xl"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className={`w-16 h-16 bg-gradient-to-r ${category.color} rounded-2xl flex items-center justify-center shadow-lg`}>
-                  <i className={`${category.icon} text-2xl text-white`}></i>
-                </div>
-              </div>
-              
-              <h3 className="text-2xl font-bold text-white mb-3">{category.title}</h3>
-              <p className="text-gray-300 mb-6">{category.description}</p>
-              
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-gray-400 text-sm">{category.questions} questions</span>
-              </div>
-              
-              <button
-                onClick={() => startQuiz(category.id)}
-                className={`w-full py-4 px-6 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg whitespace-nowrap cursor-pointer bg-gradient-to-r ${category.color} text-white hover:shadow-xl`}
-                style={{
-                  boxShadow: `0 10px 30px ${category.color.includes('blue') ? 'rgba(59, 130, 246, 0.3)' : category.color.includes('green') ? 'rgba(16, 185, 129, 0.3)' : category.color.includes('purple') ? 'rgba(147, 51, 234, 0.3)' : category.color.includes('cyan') ? 'rgba(6, 182, 212, 0.3)' : category.color.includes('orange') ? 'rgba(249, 115, 22, 0.3)' : 'rgba(147, 51, 234, 0.3)'}`
-                }}
-              >
-                <i className="ri-play-line mr-2"></i>
-                Start Quiz
-              </button>
-            </div>
+              category={category}
+              onStartQuiz={startQuiz}
+            />
           ))}
         </div>
 
         {/* Quick Challenge Section */}
-        <div className="mt-16 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-cyan-500/10 rounded-3xl p-8 border border-purple-500/20 backdrop-blur-sm">
+        <div className="mt-12 sm:mt-16 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-cyan-500/10 rounded-3xl mobile-padding border border-purple-500/20 backdrop-blur-sm">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">Daily Challenge</h2>
-            <p className="text-gray-300 mb-6">Complete today's special quiz for bonus rewards!</p>
+            <h2 className="mobile-heading font-bold text-white mb-4">Daily Challenge</h2>
+            <p className="mobile-text text-gray-300 mb-6">Complete today's special quiz for bonus rewards!</p>
             
-            <div className="bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-2xl p-6 mb-6 border border-yellow-500/30">
-              <div className="flex items-center justify-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                  <i className="ri-fire-line text-xl text-white"></i>
+            <div className="bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-2xl mobile-padding mb-6 border border-yellow-500/30">
+              <div className="flex items-center justify-center space-x-3 sm:space-x-4 mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                  <i className="ri-fire-line text-lg sm:text-xl text-white"></i>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-yellow-400">Voice Master Challenge</h3>
-                  <p className="text-yellow-300/80">Perfect your pronunciation skills</p>
+                  <h3 className="mobile-text font-bold text-yellow-400">Voice Master Challenge</h3>
+                  <p className="text-yellow-300/80 mobile-text">Perfect your pronunciation skills</p>
                 </div>
               </div>
               
-              <div className="flex items-center justify-center space-x-6 text-sm">
+              <div className="flex items-center justify-center space-x-4 sm:space-x-6 text-xs sm:text-sm">
                 <span className="text-yellow-400">⚡ 2x Points</span>
                 <span className="text-yellow-400">🏆 Special Badge</span>
                 <span className="text-yellow-400">⏰ 24h Only</span>
@@ -445,7 +447,7 @@ export default function QuizPage() {
             
             <button
               onClick={() => startQuiz('voice-interaction')}
-              className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-yellow-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg shadow-yellow-500/25 whitespace-nowrap cursor-pointer"
+              className="btn-secondary bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
             >
               <i className="ri-zap-line mr-2"></i>
               Accept Challenge

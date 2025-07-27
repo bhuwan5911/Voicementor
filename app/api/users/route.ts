@@ -10,6 +10,18 @@ export async function GET(request: Request) {
     if (searchParams.get('email')) where.email = searchParams.get('email');
     if (searchParams.get('name')) where.name = searchParams.get('name');
     if (searchParams.get('id')) where.id = Number(searchParams.get('id'));
+    if (searchParams.get('role')) {
+      // Filter by role (mentor/student) based on profile expertise
+      if (searchParams.get('role') === 'mentor') {
+        where.profile = {
+          expertise: { not: null }
+        };
+      } else if (searchParams.get('role') === 'student') {
+        where.profile = {
+          expertise: null
+        };
+      }
+    }
     const users = await prisma.user.findMany({
       where,
       include: { profile: true, quizzes: true, achievements: true, voiceRecords: true }
@@ -48,10 +60,10 @@ export async function POST(request: Request) {
           data: {
             phone: data.phone,
             location: data.location,
-            languages: data.languages || [],
+            languages: JSON.stringify(data.languages || []),
             age: data.age ? Number(data.age) : null,
             education: data.education,
-            interests: data.interests || [],
+            interests: JSON.stringify(data.interests || []),
             goals: data.goals,
             expertise: data.expertise,
             experience: data.experience,
@@ -68,10 +80,10 @@ export async function POST(request: Request) {
             userId: existingUser.id,
             phone: data.phone,
             location: data.location,
-            languages: data.languages || [],
+            languages: JSON.stringify(data.languages || []),
             age: data.age ? Number(data.age) : null,
             education: data.education,
-            interests: data.interests || [],
+            interests: JSON.stringify(data.interests || []),
             goals: data.goals,
             expertise: data.expertise,
             experience: data.experience,
@@ -97,10 +109,10 @@ export async function POST(request: Request) {
         userId: user.id,
         phone: data.phone,
         location: data.location,
-        languages: data.languages || [],
+        languages: JSON.stringify(data.languages || []),
         age: data.age ? Number(data.age) : null,
         education: data.education,
-        interests: data.interests || [],
+        interests: JSON.stringify(data.interests || []),
         goals: data.goals,
         expertise: data.expertise,
         experience: data.experience,

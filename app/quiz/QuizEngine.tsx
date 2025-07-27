@@ -34,65 +34,34 @@ const getBaseQuestions = (category: string): Omit<QuizQuestion, 'id' | 'difficul
     'programming-basics': [
       {
         type: 'voice-mcq' as const,
-        question: 'What is HTML primarily used for?',
-        options: ['Programming logic', 'Creating web page structure', 'Database management', 'Mobile app development'],
-        correctAnswer: 'Creating web page structure',
+        question: 'What is a variable in programming?',
+        options: ['A storage location', 'A function', 'A loop', 'A condition'],
+        correctAnswer: 'A storage location',
         audioUrl: undefined
       },
       {
         type: 'open-voice' as const,
-        question: 'Explain what a variable is in programming and give an example.',
-        correctAnswer: 'variable stores data',
+        question: 'Explain what a function does in programming.',
+        correctAnswer: 'A function performs a specific task or calculation',
         audioUrl: undefined
       },
       {
         type: 'repeat-after-me' as const,
-        question: 'Repeat this programming concept: "A function is a reusable block of code"',
-        correctAnswer: 'A function is a reusable block of code',
+        question: 'Repeat this: "Programming is problem solving with code"',
+        correctAnswer: 'Programming is problem solving with code',
         audioUrl: undefined
       },
       {
         type: 'fill-blank' as const,
-        question: 'Complete this sentence: "JavaScript is a _____ language used for web development"',
-        correctAnswer: 'programming',
+        question: 'A _____ is a sequence of instructions that repeats.',
+        correctAnswer: 'loop',
         audioUrl: undefined
       },
       {
         type: 'voice-mcq' as const,
-        question: 'Which of these is NOT a programming language?',
-        options: ['Python', 'JavaScript', 'Photoshop', 'Java'],
-        correctAnswer: 'Photoshop',
-        audioUrl: undefined
-      },
-      {
-        type: 'open-voice' as const,
-        question: 'What is the purpose of CSS in web development?',
-        correctAnswer: 'CSS styles web pages',
-        audioUrl: undefined
-      },
-      {
-        type: 'repeat-after-me' as const,
-        question: 'Repeat this: "Arrays store multiple values in a single variable"',
-        correctAnswer: 'Arrays store multiple values in a single variable',
-        audioUrl: undefined
-      },
-      {
-        type: 'fill-blank' as const,
-        question: 'A _____ is a container that stores data values.',
-        correctAnswer: 'variable',
-        audioUrl: undefined
-      },
-      {
-        type: 'voice-mcq' as const,
-        question: 'What does API stand for?',
-        options: ['Application Programming Interface', 'Advanced Programming Input', 'Automated Program Integration', 'Application Process Interface'],
-        correctAnswer: 'Application Programming Interface',
-        audioUrl: undefined
-      },
-      {
-        type: 'open-voice' as const,
-        question: 'Describe the difference between frontend and backend development.',
-        correctAnswer: 'Frontend is user interface, backend is server logic',
+        question: 'What is the purpose of comments in code?',
+        options: ['To explain code', 'To run programs', 'To create variables', 'To handle errors'],
+        correctAnswer: 'To explain code',
         audioUrl: undefined
       }
     ],
@@ -164,15 +133,15 @@ const getBaseQuestions = (category: string): Omit<QuizQuestion, 'id' | 'difficul
     'voice-interaction': [
       {
         type: 'voice-mcq' as const,
-        question: 'What is speech recognition technology used for?',
-        options: ['Converting text to speech', 'Converting speech to text', 'Playing music', 'Recording videos'],
-        correctAnswer: 'Converting speech to text',
+        question: 'What is the primary purpose of voice recognition technology?',
+        options: ['To play music', 'To convert speech to text', 'To record videos', 'To send emails'],
+        correctAnswer: 'To convert speech to text',
         audioUrl: undefined
       },
       {
         type: 'open-voice' as const,
         question: 'Describe how voice assistants like Siri work.',
-        correctAnswer: 'Voice assistants use speech recognition and AI',
+        correctAnswer: 'Voice assistants use speech recognition to understand commands and respond with actions or information',
         audioUrl: undefined
       },
       {
@@ -189,15 +158,15 @@ const getBaseQuestions = (category: string): Omit<QuizQuestion, 'id' | 'difficul
       },
       {
         type: 'voice-mcq' as const,
-        question: 'Which technology enables voice-controlled devices?',
-        options: ['Bluetooth', 'WiFi', 'Natural Language Processing', 'GPS'],
-        correctAnswer: 'Natural Language Processing',
+        question: 'Which technology enables computers to understand human speech?',
+        options: ['Voice Recognition', 'Image Processing', 'Data Mining', 'Network Security'],
+        correctAnswer: 'Voice Recognition',
         audioUrl: undefined
       },
       {
         type: 'open-voice' as const,
         question: 'What are the benefits of voice interaction in applications?',
-        correctAnswer: 'Hands-free operation and accessibility',
+        correctAnswer: 'Voice interaction improves accessibility, hands-free operation, and natural communication',
         audioUrl: undefined
       },
       {
@@ -214,21 +183,355 @@ const getBaseQuestions = (category: string): Omit<QuizQuestion, 'id' | 'difficul
       },
       {
         type: 'voice-mcq' as const,
-        question: 'What is the main challenge in voice recognition?',
-        options: ['Accent variations', 'Internet speed', 'Screen size', 'Battery life'],
-        correctAnswer: 'Accent variations',
+        question: 'What is the main advantage of voice-controlled interfaces?',
+        options: ['They are cheaper', 'They improve accessibility for disabled users', 'They use less battery', 'They are faster to type'],
+        correctAnswer: 'They improve accessibility for disabled users',
         audioUrl: undefined
       },
       {
         type: 'open-voice' as const,
         question: 'How can voice technology improve accessibility?',
-        correctAnswer: 'It helps people with disabilities interact with technology',
+        correctAnswer: 'Voice technology helps people with disabilities interact with devices and access information more easily',
+        audioUrl: undefined
+      }
+    ],
+    'data-structures': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is an array in programming?',
+        options: ['A collection of similar data types', 'A function', 'A variable', 'A loop'],
+        correctAnswer: 'A collection of similar data types',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Explain the difference between an array and an object.',
+        correctAnswer: 'Arrays store ordered data with numeric indices, objects store key-value pairs',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Data structures organize and store data efficiently"',
+        correctAnswer: 'Data structures organize and store data efficiently',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'A _____ is a data structure that stores key-value pairs.',
+        correctAnswer: 'object',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'Which data structure uses LIFO (Last In, First Out)?',
+        options: ['Queue', 'Stack', 'Array', 'Object'],
+        correctAnswer: 'Stack',
+        audioUrl: undefined
+      }
+    ],
+    'problem-solving': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the first step in problem solving?',
+        options: ['Write code', 'Understand the problem', 'Test the solution', 'Debug errors'],
+        correctAnswer: 'Understand the problem',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Describe the process of breaking down a complex problem.',
+        correctAnswer: 'Breaking down involves dividing a complex problem into smaller, manageable sub-problems',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Algorithm design is systematic problem solving"',
+        correctAnswer: 'Algorithm design is systematic problem solving',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'A _____ is a step-by-step solution to a problem.',
+        correctAnswer: 'algorithm',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the purpose of pseudocode?',
+        options: ['To write final code', 'To plan algorithms in plain language', 'To debug programs', 'To optimize performance'],
+        correctAnswer: 'To plan algorithms in plain language',
+        audioUrl: undefined
+      }
+    ],
+    'career-guidance': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is a common entry-level role in tech?',
+        options: ['CEO', 'Junior Developer', 'CTO', 'Senior Architect'],
+        correctAnswer: 'Junior Developer',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Describe the skills needed for a frontend developer role.',
+        correctAnswer: 'Frontend developers need HTML, CSS, JavaScript, and knowledge of frameworks like React',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Continuous learning is essential in tech careers"',
+        correctAnswer: 'Continuous learning is essential in tech careers',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'A _____ is a collection of your best work for job applications.',
+        correctAnswer: 'portfolio',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'Which is most important for career growth in tech?',
+        options: ['Having a degree', 'Building projects', 'Networking', 'All of the above'],
+        correctAnswer: 'All of the above',
+        audioUrl: undefined
+      }
+    ],
+    'voice-interaction': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the primary purpose of voice recognition technology?',
+        options: ['To play music', 'To convert speech to text', 'To record videos', 'To send emails'],
+        correctAnswer: 'To convert speech to text',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Describe how voice assistants like Siri work.',
+        correctAnswer: 'Voice assistants use speech recognition to understand commands and respond with actions or information',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Voice commands make technology more accessible"',
+        correctAnswer: 'Voice commands make technology more accessible',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'Text-to-speech converts _____ to spoken words.',
+        correctAnswer: 'text',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'Which technology enables computers to understand human speech?',
+        options: ['Voice Recognition', 'Image Processing', 'Data Mining', 'Network Security'],
+        correctAnswer: 'Voice Recognition',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'What are the benefits of voice interaction in applications?',
+        correctAnswer: 'Voice interaction improves accessibility, hands-free operation, and natural communication',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Voice biometrics can identify users by their voice"',
+        correctAnswer: 'Voice biometrics can identify users by their voice',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'Speech _____ converts spoken words to text.',
+        correctAnswer: 'recognition',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the main advantage of voice-controlled interfaces?',
+        options: ['They are cheaper', 'They improve accessibility for disabled users', 'They use less battery', 'They are faster to type'],
+        correctAnswer: 'They improve accessibility for disabled users',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'How can voice technology improve accessibility?',
+        correctAnswer: 'Voice technology helps people with disabilities interact with devices and access information more easily',
+        audioUrl: undefined
+      }
+    ],
+    'data-structures': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is an array in programming?',
+        options: ['A collection of similar data types', 'A function', 'A variable', 'A loop'],
+        correctAnswer: 'A collection of similar data types',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Explain the difference between an array and an object.',
+        correctAnswer: 'Arrays store ordered data with numeric indices, objects store key-value pairs',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Data structures organize and store data efficiently"',
+        correctAnswer: 'Data structures organize and store data efficiently',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'A _____ is a data structure that stores key-value pairs.',
+        correctAnswer: 'object',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'Which data structure uses LIFO (Last In, First Out)?',
+        options: ['Queue', 'Stack', 'Array', 'Object'],
+        correctAnswer: 'Stack',
+        audioUrl: undefined
+      }
+    ],
+    'problem-solving': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the first step in problem solving?',
+        options: ['Write code', 'Understand the problem', 'Test the solution', 'Debug errors'],
+        correctAnswer: 'Understand the problem',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Describe the process of breaking down a complex problem.',
+        correctAnswer: 'Breaking down involves dividing a complex problem into smaller, manageable sub-problems',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Algorithm design is systematic problem solving"',
+        correctAnswer: 'Algorithm design is systematic problem solving',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'A _____ is a step-by-step solution to a problem.',
+        correctAnswer: 'algorithm',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the purpose of pseudocode?',
+        options: ['To write final code', 'To plan algorithms in plain language', 'To debug programs', 'To optimize performance'],
+        correctAnswer: 'To plan algorithms in plain language',
+        audioUrl: undefined
+      }
+    ],
+    'career-guidance': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is a common entry-level role in tech?',
+        options: ['CEO', 'Junior Developer', 'CTO', 'Senior Architect'],
+        correctAnswer: 'Junior Developer',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Describe the skills needed for a frontend developer role.',
+        correctAnswer: 'Frontend developers need HTML, CSS, JavaScript, and knowledge of frameworks like React',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Continuous learning is essential in tech careers"',
+        correctAnswer: 'Continuous learning is essential in tech careers',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'A _____ is a collection of your best work for job applications.',
+        correctAnswer: 'portfolio',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'Which is most important for career growth in tech?',
+        options: ['Having a degree', 'Building projects', 'Networking', 'All of the above'],
+        correctAnswer: 'All of the above',
+        audioUrl: undefined
+      }
+    ],
+    'voice-interaction': [
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the primary purpose of voice recognition technology?',
+        options: ['To play music', 'To convert speech to text', 'To record videos', 'To send emails'],
+        correctAnswer: 'To convert speech to text',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'Describe how voice assistants like Siri work.',
+        correctAnswer: 'Voice assistants use speech recognition to understand commands and respond with actions or information',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Voice commands make technology more accessible"',
+        correctAnswer: 'Voice commands make technology more accessible',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'Text-to-speech converts _____ to spoken words.',
+        correctAnswer: 'text',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'Which technology enables computers to understand human speech?',
+        options: ['Voice Recognition', 'Image Processing', 'Data Mining', 'Network Security'],
+        correctAnswer: 'Voice Recognition',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'What are the benefits of voice interaction in applications?',
+        correctAnswer: 'Voice interaction improves accessibility, hands-free operation, and natural communication',
+        audioUrl: undefined
+      },
+      {
+        type: 'repeat-after-me' as const,
+        question: 'Repeat this: "Voice biometrics can identify users by their voice"',
+        correctAnswer: 'Voice biometrics can identify users by their voice',
+        audioUrl: undefined
+      },
+      {
+        type: 'fill-blank' as const,
+        question: 'Speech _____ converts spoken words to text.',
+        correctAnswer: 'recognition',
+        audioUrl: undefined
+      },
+      {
+        type: 'voice-mcq' as const,
+        question: 'What is the main advantage of voice-controlled interfaces?',
+        options: ['They are cheaper', 'They improve accessibility for disabled users', 'They use less battery', 'They are faster to type'],
+        correctAnswer: 'They improve accessibility for disabled users',
+        audioUrl: undefined
+      },
+      {
+        type: 'open-voice' as const,
+        question: 'How can voice technology improve accessibility?',
+        correctAnswer: 'Voice technology helps people with disabilities interact with devices and access information more easily',
         audioUrl: undefined
       }
     ]
   };
 
-  return questionSets[category as keyof typeof questionSets] || questionSets['programming-basics'];
+  return questionSets[category as keyof typeof questionSets] || [];
 };
 
 
@@ -245,6 +548,7 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
   const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty);
   const [selectedLanguage, setSelectedLanguage] = useState(language);
   const [showSetup, setShowSetup] = useState(true);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -329,16 +633,16 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
   const playQuestionAudio = () => {
     try {
       if (currentQ?.audioUrl) {
-        const audio = new Audio(currentQ.audioUrl);
+      const audio = new Audio(currentQ.audioUrl);
         audio.play().catch(error => {
           console.warn('Error playing audio:', error);
         });
       } else if (currentQ?.question) {
-        // Use speech synthesis for text-to-speech
-        const utterance = new SpeechSynthesisUtterance(currentQ.question);
+      // Use speech synthesis for text-to-speech
+      const utterance = new SpeechSynthesisUtterance(currentQ.question);
         utterance.lang = selectedLanguage;
-        utterance.rate = 0.8;
-        window.speechSynthesis.speak(utterance);
+      utterance.rate = 0.8;
+      window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
       console.warn('Error in playQuestionAudio:', error);
@@ -396,6 +700,7 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
   };
 
   const handleMCQAnswer = (option: string) => {
+    setSelectedOption(option);
     setTranscription(option);
     setTimeout(() => {
       submitAnswer(option);
@@ -409,33 +714,34 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
         return;
       }
 
-      const newAnswers = [...userAnswers, answer];
-      setUserAnswers(newAnswers);
-      
-      // Check if answer is correct
-      let isCorrect = false;
-      if (currentQ.type === 'voice-mcq' || currentQ.type === 'fill-blank') {
-        isCorrect = answer.toLowerCase().includes(currentQ.correctAnswer.toLowerCase());
-      } else if (currentQ.type === 'repeat-after-me') {
-        isCorrect = answer.toLowerCase().includes(currentQ.correctAnswer.toLowerCase());
-      } else {
-        // For open-voice, give points for any reasonable answer
-        isCorrect = answer.length > 10;
-      }
-      
-      if (isCorrect) {
+    const newAnswers = [...userAnswers, answer];
+    setUserAnswers(newAnswers);
+    
+    // Check if answer is correct
+    let isCorrect = false;
+    if (currentQ.type === 'voice-mcq' || currentQ.type === 'fill-blank') {
+      isCorrect = answer.toLowerCase().includes(currentQ.correctAnswer.toLowerCase());
+    } else if (currentQ.type === 'repeat-after-me') {
+      isCorrect = answer.toLowerCase().includes(currentQ.correctAnswer.toLowerCase());
+    } else {
+      // For open-voice, give points for any reasonable answer
+      isCorrect = answer.length > 10;
+    }
+    
+    if (isCorrect) {
         setScore(prev => prev + (currentQ.points || 0));
-      }
-      
-      // Move to next question or finish quiz
-      if (currentQuestion < questions.length - 1) {
-        setTimeout(() => {
-          setCurrentQuestion(prev => prev + 1);
-          setTranscription('');
-        }, 2000);
-      } else {
-        setTimeout(() => {
-          setShowResult(true);
+    }
+    
+    // Move to next question or finish quiz
+    if (currentQuestion < questions.length - 1) {
+      setTimeout(() => {
+        setCurrentQuestion(prev => prev + 1);
+        setTranscription('');
+        setSelectedOption(null);
+      }, 2000);
+    } else {
+      setTimeout(() => {
+        setShowResult(true);
           const correctAnswers = newAnswers.filter((ans, idx) => {
             const q = questions[idx];
             if (!q) return false;
@@ -448,7 +754,7 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
             }
           }).length;
           onQuizComplete(score + (isCorrect ? (currentQ.points || 0) : 0), questions.length, correctAnswers);
-        }, 2000);
+      }, 2000);
       }
     } catch (error) {
       console.error('Error in submitAnswer:', error);
@@ -524,7 +830,7 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
                 <div className="text-2xl font-bold text-purple-400">
                   {difficulties.find(d => d.id === selectedDifficulty)?.points * 10 || 100}
                 </div>
-                <div className="text-xs text-gray-400">Max Points</div>
+                  <div className="text-xs text-gray-400">Max Points</div>
                 </div>
               </div>
             </div>
@@ -673,9 +979,17 @@ export default function QuizEngine({ category, difficulty, language, onQuizCompl
                 <button
                   key={index}
                   onClick={() => handleMCQAnswer(option)}
-                  className="w-full bg-gray-700/50 text-white p-4 rounded-xl text-left hover:bg-gray-600/50 transition-all transform hover:scale-[1.02] border border-gray-600 hover:border-cyan-500/50 whitespace-nowrap cursor-pointer"
+                  className={`w-full p-4 rounded-xl text-left transition-all transform hover:scale-[1.02] border whitespace-nowrap cursor-pointer ${
+                    selectedOption === option
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 shadow-lg shadow-cyan-500/25'
+                      : 'bg-gray-700/50 text-white hover:bg-gray-600/50 border-gray-600 hover:border-cyan-500/50'
+                  }`}
                 >
-                  <span className="font-medium text-cyan-400 mr-3">{String.fromCharCode(65 + index)}.</span>
+                  <span className={`font-medium mr-3 ${
+                    selectedOption === option ? 'text-white' : 'text-cyan-400'
+                  }`}>
+                    {String.fromCharCode(65 + index)}.
+                  </span>
                   {option}
                 </button>
               ))}

@@ -172,32 +172,32 @@ export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints, 
                     <p className="text-gray-400 mt-4">Loading badges...</p>
                   </div>
                 ) : userBadges.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {userBadges.map((badge) => (
-                      <div
-                        key={badge.id}
+                    <div
+                      key={badge.id}
                         className="p-6 rounded-2xl border-2 border-purple-500/30 bg-gradient-to-br from-gray-700/50 to-gray-800/50 shadow-lg shadow-purple-500/10 transition-all transform hover:scale-105"
-                      >
-                        <div className="text-center">
+                    >
+                      <div className="text-center">
                           <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-r ${badge.color} shadow-lg`}>
-                            <i className={`${badge.icon} text-2xl text-white`}></i>
-                          </div>
+                          <i className={`${badge.icon} text-2xl text-white`}></i>
+                        </div>
                           <h3 className="font-bold mb-2 text-white">
-                            {badge.name}
-                          </h3>
+                          {badge.name}
+                        </h3>
                           <p className="text-sm mb-3 text-gray-300">
-                            {badge.description}
-                          </p>
+                          {badge.description}
+                        </p>
                           <div className="space-y-2">
                             <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-xs font-medium">
                               <i className="ri-check-line mr-1"></i>
                               Earned
                             </div>
-                            <div className="text-xs text-gray-400">
+                              <div className="text-xs text-gray-400">
                               {new Date(badge.earnedAt).toLocaleDateString()}
-                            </div>
+                              </div>
                           </div>
-                        </div>
+                          </div>
                       </div>
                     ))}
                   </div>
@@ -208,7 +208,7 @@ export default function RewardSystem({ isOpen, onClose, userLevel, totalPoints, 
                     </div>
                     <h3 className="text-xl font-semibold text-gray-400 mb-2">No Badges Yet</h3>
                     <p className="text-gray-500">Complete quizzes and reach milestones to earn badges</p>
-                  </div>
+                </div>
                 )}
               </div>
             )}

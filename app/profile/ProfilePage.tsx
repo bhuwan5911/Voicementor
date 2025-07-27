@@ -197,7 +197,7 @@ export default function ProfilePage({ isOpen, onClose }: ProfilePageProps) {
         {/* Tab Navigation */}
         <div className="bg-gray-800/30 border-b border-gray-700/50">
           <div className="flex">
-            {['overview', 'achievements', 'badges', 'settings'].map((tab) => (
+            {['overview', 'resume', 'chat', 'achievements', 'badges', 'settings'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -209,6 +209,8 @@ export default function ProfilePage({ isOpen, onClose }: ProfilePageProps) {
               >
                 <i className={`${
                   tab === 'overview' ? 'ri-user-line' :
+                  tab === 'resume' ? 'ri-file-text-line' :
+                  tab === 'chat' ? 'ri-chat-3-line' :
                   tab === 'achievements' ? 'ri-trophy-line' :
                   tab === 'badges' ? 'ri-medal-line' :
                   'ri-settings-line'
@@ -344,6 +346,85 @@ export default function ProfilePage({ isOpen, onClose }: ProfilePageProps) {
                         <span className="text-gray-300 text-sm">{goal}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'resume' && (
+            <div>
+              <div className="mb-6">
+                <h3 className="text-2xl font-semibold text-white mb-2">Your Resume</h3>
+                <p className="text-gray-400">Create and manage your professional resume</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 rounded-2xl p-6 border border-gray-700/50">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="ri-file-text-line text-3xl text-white"></i>
+                  </div>
+                  <h4 className="text-xl font-semibold text-white mb-2">Voice Resume Builder</h4>
+                  <p className="text-gray-400 mb-6">Create your professional resume using voice commands</p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={() => router.push('/resume-builder')}
+                      className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-red-700 transition-all shadow-lg shadow-orange-500/25"
+                    >
+                      <i className="ri-mic-line mr-2"></i>
+                      Create Resume
+                    </button>
+                    <button
+                      onClick={() => router.push('/resume-builder')}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-700 transition-all shadow-lg shadow-blue-500/25"
+                    >
+                      <i className="ri-edit-line mr-2"></i>
+                      Edit Resume
+                    </button>
+                  </div>
+                  
+                  <div className="mt-6 text-sm text-gray-400">
+                    <p>• Answer questions with your voice</p>
+                    <p>• Live preview as you build</p>
+                    <p>• Download as PDF when complete</p>
+                    <p>• Save progress and edit later</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'chat' && (
+            <div>
+              <div className="mb-6">
+                <h3 className="text-2xl font-semibold text-white mb-2">Live Voice Translation Chat</h3>
+                <p className="text-gray-400">Connect with mentors and students with real-time voice translation</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 rounded-2xl p-6 border border-gray-700/50">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="ri-chat-3-line text-3xl text-white"></i>
+                  </div>
+                  <h4 className="text-xl font-semibold text-white mb-2">Multi-Language Voice Chat</h4>
+                  <p className="text-gray-400 mb-6">Speak in your preferred language and communicate seamlessly</p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={() => router.push('/voice-chat')}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/25"
+                    >
+                      <i className="ri-chat-3-line mr-2"></i>
+                      Start Chat
+                    </button>
+                  </div>
+                  
+                  <div className="mt-6 text-sm text-gray-400">
+                    <p>• Real-time voice translation</p>
+                    <p>• Support for 10+ Indian languages</p>
+                    <p>• Connect with mentors and students</p>
+                    <p>• See both original and translated text</p>
                   </div>
                 </div>
               </div>

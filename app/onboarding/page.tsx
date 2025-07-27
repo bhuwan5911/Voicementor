@@ -94,8 +94,8 @@ export default function Onboarding() {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to submit form');
       }
-      
-      setIsSubmitting(false);
+    
+    setIsSubmitting(false);
       router.push('/features');
     } catch (err) {
       console.error('Form submission error:', err);

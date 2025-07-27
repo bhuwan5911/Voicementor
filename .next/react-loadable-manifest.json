@@ -1,12 +1,12 @@
 {
-  "app\\quiz\\page.tsx -> @/lib/badgeService": {
-    "id": "app\\quiz\\page.tsx -> @/lib/badgeService",
+  "app\\onboarding\\page.tsx -> @supabase/supabase-js": {
+    "id": "app\\onboarding\\page.tsx -> @supabase/supabase-js",
     "files": [
-      "static/chunks/_app-pages-browser_lib_badgeService_ts.js"
+      "static/chunks/_app-pages-browser_node_modules_supabase_supabase-js_dist_module_index_js.js"
     ]
   },
-  "app\\quiz\\page.tsx -> @supabase/supabase-js": {
-    "id": "app\\quiz\\page.tsx -> @supabase/supabase-js",
+  "app\\voice-chat\\page.tsx -> @supabase/supabase-js": {
+    "id": "app\\voice-chat\\page.tsx -> @supabase/supabase-js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_supabase_supabase-js_dist_module_index_js.js"
     ]

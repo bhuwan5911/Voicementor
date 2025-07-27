@@ -22,7 +22,7 @@ export default function Features() {
     {
       title: 'Voice-First Communication',
       description: 'Speak naturally in your native language. No typing barriers, no reading requirements.',
-      icon: 'ri-mic-line',
+      icon: 'ri-mic-2-line',
       color: 'indigo',
       details: [
         'Real-time voice recognition',
@@ -34,7 +34,7 @@ export default function Features() {
     {
       title: 'Smart Language Translation',
       description: 'AI-powered translation breaks down language barriers instantly and accurately.',
-      icon: 'ri-translate-2-line',
+      icon: 'ri-exchange-line',
       color: 'green',
       details: [
         'Real-time translation',
@@ -56,9 +56,35 @@ export default function Features() {
       ]
     },
     {
+      title: 'Voice Resume Builder',
+      description: 'Create professional resumes using voice commands and download as PDF.',
+      icon: 'ri-file-text-line',
+      color: 'orange',
+      details: [
+        'Voice-to-text input',
+        'Live resume preview',
+        'Professional templates',
+        'PDF download option'
+      ],
+      href: '/resume-builder'
+    },
+    {
+      title: 'Live Voice Translation Chat',
+      description: 'Real-time voice translation between mentors and students in multiple languages.',
+      icon: 'ri-chat-3-line',
+      color: 'emerald',
+      details: [
+        'Real-time translation',
+        'Voice and text chat',
+        'Multiple languages',
+        'Mentor-student communication'
+      ],
+      href: '/voice-chat'
+    },
+    {
       title: 'Intelligent Mentor Matching',
       description: 'AI algorithms match you with the perfect mentor based on your goals and preferences.',
-      icon: 'ri-group-line',
+      icon: 'ri-user-star-line',
       color: 'cyan',
       details: [
         'Personality compatibility',
@@ -100,7 +126,9 @@ export default function Features() {
       purple: 'from-purple-500 to-pink-600',
       cyan: 'from-cyan-500 to-blue-600',
       blue: 'from-blue-500 to-indigo-600',
-      yellow: 'from-yellow-500 to-orange-600'
+      yellow: 'from-yellow-500 to-orange-600',
+      orange: 'from-orange-500 to-red-600',
+      emerald: 'from-green-500 to-emerald-600'
     };
     return colors[color as keyof typeof colors] || colors.indigo;
   };
@@ -112,12 +140,22 @@ export default function Features() {
       purple: 'shadow-purple-500/20',
       cyan: 'shadow-cyan-500/20',
       blue: 'shadow-blue-500/20',
-      yellow: 'shadow-yellow-500/20'
+      yellow: 'shadow-yellow-500/20',
+      orange: 'shadow-orange-500/20',
+      emerald: 'shadow-green-500/20'
     };
     return shadows[color as keyof typeof shadows] || shadows.indigo;
   };
 
   const handleFeatureAction = (index: number) => {
+    const feature = features[index];
+    
+    // Check if feature has a direct href
+    if (feature.href) {
+      window.location.href = feature.href;
+      return;
+    }
+    
     switch (index) {
       case 1: // Translation feature
         setShowTranslationDemo(true);
@@ -125,10 +163,10 @@ export default function Features() {
       case 2: // Quiz feature
         window.location.href = '/quiz';
         break;
-      case 4: // Device compatibility feature
+      case 6: // Device compatibility feature (updated index)
         setShowDeviceChecker(true);
         break;
-      case 5: // Progress tracking feature
+      case 7: // Progress tracking feature (updated index)
         setShowProgressShowcase(true);
         break;
       default:

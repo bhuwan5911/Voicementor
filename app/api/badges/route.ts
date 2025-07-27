@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         icon,
         color,
         type,
-        metadata: metadata || {}
+        metadata: metadata || null
       }
     });
 
