@@ -4,6 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import VoiceInput from './VoiceInput';
 import ChatMessage from './ChatMessage';
 import { translateText } from '@/lib/translationService';
+// Add TTS helper
+function speakText(text: string, lang: string) {
+  if ('speechSynthesis' in window) {
+    const utterance = new window.SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    window.speechSynthesis.speak(utterance);
+  }
+}
 
 interface User {
   id: number;
@@ -45,6 +53,8 @@ export default function VoiceChatInterface({ user, selectedLanguage, availableLa
   const [isTranslating, setIsTranslating] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState<User[]>([]);
   const [translationStatus, setTranslationStatus] = useState<'idle' | 'success' | 'error' | 'fallback'>('idle');
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [peer, setPeer] = useState<User | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Helper function to get language name
@@ -80,7 +90,7 @@ export default function VoiceChatInterface({ user, selectedLanguage, availableLa
             id: userData.id,
             name: userData.name,
             email: userData.email,
-            role: userData.role as 'student' | 'mentor',
+            role: userData.profile?.expertise ? 'mentor' : 'student',
             language: userData.profile?.languages ? JSON.parse(userData.profile.languages)[0] || 'en' : 'en'
           }));
           
@@ -102,64 +112,161 @@ export default function VoiceChatInterface({ user, selectedLanguage, availableLa
     loadConnectedUsers();
   }, [user]);
 
+  // Find a peer (student finds mentor, mentor finds student)
+  useEffect(() => {
+    if (!user || connectedUsers.length === 0) return;
+    let foundPeer = null;
+    if (user.role === 'student') {
+      foundPeer = connectedUsers.find(u => u.role === 'mentor' && u.id !== user.id);
+    } else {
+      foundPeer = connectedUsers.find(u => u.role === 'student' && u.id !== user.id);
+    }
+    setPeer(foundPeer || null);
+  }, [user, connectedUsers]);
+
+  // Find or create a session with both users (always use the most recent one)
+  useEffect(() => {
+    if (!user || !peer) return;
+    const findOrCreateSession = async () => {
+      try {
+        // 1. Try to find the most recent session with both users
+        const res = await fetch(`/api/chat/sessions?userId=${user.id}`);
+        if (res.ok) {
+          const sessions = await res.json();
+          // Find the most recent session where both users are participants
+          const session = sessions
+            .filter((s: any) =>
+              s.participants.some((p: any) => p.userId === user.id) &&
+              s.participants.some((p: any) => p.userId === peer.id)
+            )
+            .sort((a: any, b: any) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+          if (session) {
+            setSessionId(session.id);
+            return;
+          }
+        }
+        // 2. If not found, create a new session with both users
+        const createRes = await fetch('/api/chat/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: `${user.name} & ${peer.name}`,
+            participants: [
+              { userId: user.id, role: user.role, language: user.language },
+              { userId: peer.id, role: peer.role, language: peer.language }
+            ]
+          })
+        });
+        if (createRes.ok) {
+          const newSession = await createRes.json();
+          setSessionId(newSession.id);
+        }
+      } catch (err) {
+        console.error('Failed to find or create chat session', err);
+      }
+    };
+    findOrCreateSession();
+  }, [user, peer]);
+
+  // Load messages from backend
+  useEffect(() => {
+    if (!sessionId) return;
+    let isMounted = true;
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`/api/chat/messages?sessionId=${sessionId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setMessages(data.map((msg: any) => ({
+              id: msg.id.toString(),
+              senderId: msg.senderId,
+              senderName: msg.sender?.name || 'Unknown',
+              originalText: msg.originalText,
+              translatedText: msg.translatedText,
+              originalLanguage: msg.originalLanguage,
+              translatedLanguage: msg.translatedLanguage,
+              timestamp: new Date(msg.createdAt),
+              isVoice: msg.isVoice,
+            })));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch messages', err);
+      }
+    };
+    fetchMessages();
+    // Poll every 2 seconds
+    const interval = setInterval(fetchMessages, 2000);
+    return () => { isMounted = false; clearInterval(interval); };
+  }, [sessionId]);
+
+  // Send message to backend
+  const sendMessage = async (msg: Omit<ChatMessage, 'id' | 'timestamp' | 'senderName'>) => {
+    if (!sessionId) return;
+    try {
+      const res = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          senderId: msg.senderId,
+          originalText: msg.originalText,
+          translatedText: msg.translatedText,
+          originalLanguage: msg.originalLanguage,
+          translatedLanguage: msg.translatedLanguage,
+          isVoice: msg.isVoice,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to send message');
+      // No need to update messages here, polling will update
+    } catch (err) {
+      console.error('Failed to send message', err);
+    }
+  };
+
+  // Helper to get the student's selected language (from peer if mentor, or from self if student)
+  const getStudentLanguage = () => {
+    if (user.role === 'student') return selectedLanguage;
+    if (peer && peer.role === 'student') return peer.language;
+    return 'en';
+  };
+
   const handleVoiceInput = async (text: string) => {
     if (!text.trim()) return;
-
     setIsTranslating(true);
     setTranslationStatus('idle');
     try {
-      // Determine target language based on user role and connected users
-      let targetLanguage = selectedLanguage; // Default to same language
-      
-      // Only translate if the user is speaking Hindi and there are English-speaking mentors
-      if (selectedLanguage === 'hi') {
-        // Check if there are English-speaking mentors who need translation
-        const hasEnglishMentors = connectedUsers.some(u => 
-          u.role === 'mentor' && u.language === 'en' && u.id !== user.id
-        );
-        if (hasEnglishMentors) {
-          targetLanguage = 'en';
-        }
+      let targetLanguage = 'en';
+      let fromLanguage = selectedLanguage;
+      // Student: always translate to English for mentor
+      // Mentor: always translate to student's language
+      if (user.role === 'mentor') {
+        targetLanguage = getStudentLanguage();
+        fromLanguage = 'en';
       }
-
-      console.log('Translating:', { text, from: selectedLanguage, to: targetLanguage });
-      const translatedText = await translateText(text, selectedLanguage, targetLanguage);
-      console.log('Translation result:', translatedText);
-      
-      // Check if translation was successful or used fallback
+      const translatedText = await translateText(text, fromLanguage, targetLanguage);
       const isFallback = translatedText === text || translatedText.toLowerCase() === text.toLowerCase();
       setTranslationStatus(isFallback ? 'fallback' : 'success');
-      
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
+      await sendMessage({
         senderId: user.id,
-        senderName: user.name,
         originalText: text,
-        translatedText: translatedText,
-        originalLanguage: selectedLanguage,
+        translatedText,
+        originalLanguage: fromLanguage,
         translatedLanguage: targetLanguage,
-        timestamp: new Date(),
-        isVoice: true
-      };
-
-      setMessages(prev => [...prev, newMessage]);
+        isVoice: true,
+      });
       setTranscription('');
     } catch (error) {
-      console.error('Translation error:', error);
       setTranslationStatus('error');
-      // Add message with original text when translation fails
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
+      await sendMessage({
         senderId: user.id,
-        senderName: user.name,
         originalText: text,
-        translatedText: text, // Use original text as fallback
-        originalLanguage: selectedLanguage,
-        translatedLanguage: selectedLanguage,
-        timestamp: new Date(),
-        isVoice: true
-      };
-      setMessages(prev => [...prev, newMessage]);
+        translatedText: text,
+        originalLanguage: user.role === 'mentor' ? 'en' : selectedLanguage,
+        translatedLanguage: user.role === 'mentor' ? getStudentLanguage() : 'en',
+        isVoice: true,
+      });
       setTranscription('');
     } finally {
       setIsTranslating(false);
@@ -168,62 +275,37 @@ export default function VoiceChatInterface({ user, selectedLanguage, availableLa
 
   const handleTextInput = async () => {
     if (!inputText.trim() || isTranslating) return;
-
     setIsTranslating(true);
     setTranslationStatus('idle');
     try {
-      // Determine target language based on user role and connected users
-      let targetLanguage = selectedLanguage; // Default to same language
-      
-      // Only translate if the user is speaking Hindi and there are English-speaking mentors
-      if (selectedLanguage === 'hi') {
-        // Check if there are English-speaking mentors who need translation
-        const hasEnglishMentors = connectedUsers.some(u => 
-          u.role === 'mentor' && u.language === 'en' && u.id !== user.id
-        );
-        if (hasEnglishMentors) {
-          targetLanguage = 'en';
-        }
+      let targetLanguage = 'en';
+      let fromLanguage = selectedLanguage;
+      if (user.role === 'mentor') {
+        targetLanguage = getStudentLanguage();
+        fromLanguage = 'en';
       }
-
-      console.log('Translating text input:', { text: inputText, from: selectedLanguage, to: targetLanguage });
-      const translatedText = await translateText(inputText, selectedLanguage, targetLanguage);
-      console.log('Text translation result:', translatedText);
-
-      // Check if translation was successful or used fallback
+      const translatedText = await translateText(inputText, fromLanguage, targetLanguage);
       const isFallback = translatedText === inputText || translatedText.toLowerCase() === inputText.toLowerCase();
       setTranslationStatus(isFallback ? 'fallback' : 'success');
-
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
+      await sendMessage({
         senderId: user.id,
-        senderName: user.name,
         originalText: inputText,
-        translatedText: translatedText,
-        originalLanguage: selectedLanguage,
+        translatedText,
+        originalLanguage: fromLanguage,
         translatedLanguage: targetLanguage,
-        timestamp: new Date(),
-        isVoice: false
-      };
-
-      setMessages(prev => [...prev, newMessage]);
+        isVoice: false,
+      });
       setInputText('');
     } catch (error) {
-      console.error('Translation error:', error);
       setTranslationStatus('error');
-      // Add message with original text when translation fails
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
+      await sendMessage({
         senderId: user.id,
-        senderName: user.name,
         originalText: inputText,
-        translatedText: inputText, // Use original text as fallback
-        originalLanguage: selectedLanguage,
-        translatedLanguage: selectedLanguage,
-        timestamp: new Date(),
-        isVoice: false
-      };
-      setMessages(prev => [...prev, newMessage]);
+        translatedText: inputText,
+        originalLanguage: user.role === 'mentor' ? 'en' : selectedLanguage,
+        translatedLanguage: user.role === 'mentor' ? getStudentLanguage() : 'en',
+        isVoice: false,
+      });
       setInputText('');
     } finally {
       setIsTranslating(false);
@@ -278,14 +360,31 @@ export default function VoiceChatInterface({ user, selectedLanguage, availableLa
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  isOwnMessage={message.senderId === user.id}
-                  userLanguage={selectedLanguage}
-                />
-              ))
+              messages.map((message) => {
+                const isOwnMessage = message.senderId === user.id;
+                // Show speaker button for all users on any message not their own
+                const showSpeakerButton = !isOwnMessage;
+                return (
+                  <div key={message.id} style={{ position: 'relative' }}>
+                    <ChatMessage
+                      message={message}
+                      isOwnMessage={isOwnMessage}
+                      userLanguage={selectedLanguage}
+                    />
+                    {/* Speaker button for any user to hear any received message */}
+                    {showSpeakerButton && (
+                      <button
+                        style={{ position: 'absolute', right: 0, top: 0, zIndex: 10 }}
+                        title="Hear this message"
+                        onClick={() => speakText(message.translatedText, selectedLanguage)}
+                        className="ml-2 bg-cyan-600 text-white rounded-full p-2 hover:bg-cyan-700"
+                      >
+                        <i className="ri-volume-up-line"></i>
+                      </button>
+                    )}
+                  </div>
+                );
+              })
             )}
             <div ref={messagesEndRef} />
           </div>

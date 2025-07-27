@@ -6,78 +6,8 @@
 // const BACKUP_TRANSLATE_URL = 'https://translate.argosopentech.com/translate';
 
 export async function translateText(text: string, fromLang: string, toLang: string): Promise<string> {
-  try {
-    console.log('=== TRANSLATION DEBUG START ===');
-    console.log('translateText called with:', { text, fromLang, toLang });
-    
-    // If same language, return original text
-    if (fromLang === toLang) {
-      console.log('Same language, returning original text');
+  // TEMP: Always return the input text for testing chat sync
       return text;
-    }
-
-    // Clean and normalize text
-    const cleanText = text.trim();
-    if (!cleanText) {
-      console.log('Empty text, returning original');
-      return text;
-    }
-    
-    console.log('Clean text:', cleanText);
-    
-    // Handle specific common phrases first (most reliable)
-    console.log('Checking specific translations...');
-    const specificTranslation = getSpecificTranslation(cleanText, fromLang, toLang);
-    if (specificTranslation) {
-      console.log('✓ Using specific translation:', specificTranslation);
-      return specificTranslation;
-    }
-    console.log('✗ No specific translation found');
-
-    // Try enhanced fallback translations for common phrases
-    console.log('Checking enhanced fallback translations...');
-    const enhancedFallback = getEnhancedFallbackTranslation(cleanText.toLowerCase(), fromLang, toLang);
-    if (enhancedFallback) {
-      console.log('✓ Using enhanced fallback:', enhancedFallback);
-      return enhancedFallback;
-    }
-    console.log('✗ No enhanced fallback found');
-
-    // Try basic fallback translations
-    console.log('Checking basic fallback translations...');
-    const fallbackResult = getFallbackTranslation(cleanText.toLowerCase(), fromLang, toLang);
-    if (fallbackResult) {
-      console.log('✓ Using basic fallback:', fallbackResult);
-      return fallbackResult;
-    }
-    console.log('✗ No basic fallback found');
-
-    // Try word-by-word translation for simple phrases
-    console.log('Checking word-by-word translation...');
-    const wordByWordResult = translateWordByWord(cleanText, fromLang, toLang);
-    if (wordByWordResult) {
-      console.log('✓ Using word-by-word translation:', wordByWordResult);
-      return wordByWordResult;
-    }
-    console.log('✗ No word-by-word translation found');
-
-    // API translation completely disabled due to CORS issues
-    console.log('✗ API translation disabled - CORS issues');
-    console.log('=== TRANSLATION DEBUG END ===');
-    return text;
-
-  } catch (error) {
-    console.error('Translation error:', error);
-    
-    // Final fallback: try to translate word by word
-    const wordByWordResult = translateWordByWord(text, fromLang, toLang);
-    if (wordByWordResult) {
-      return wordByWordResult;
-    }
-    
-    // If all else fails, return original text
-    return text;
-  }
 }
 
 // Specific translations for common phrases (most reliable)

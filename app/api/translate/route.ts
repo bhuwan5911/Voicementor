@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { translateText } from '@/lib/translationService';
+
+const LIBRE_TRANSLATE_URL = 'https://libretranslate.de/translate';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,19 +13,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Translation API called:', { text, fromLang, toLang });
-
-    const translatedText = await translateText(text, fromLang, toLang);
+    // Proxy the translation request to LibreTranslate from the server
+    const res = await fetch(LIBRE_TRANSLATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q: text,
+        source: fromLang,
+        target: toLang,
+        format: 'text'
+      })
+    });
+    if (!res.ok) {
+      throw new Error('LibreTranslate API error');
+    }
+    const data = await res.json();
+    const translatedText = data.translatedText || data.translation || '';
 
     return NextResponse.json({
       success: true,
       originalText: text,
-      translatedText: translatedText,
+      translatedText,
       fromLang,
       toLang,
       timestamp: new Date().toISOString()
     });
-
   } catch (error) {
     console.error('Translation API error:', error);
     return NextResponse.json(

@@ -10,6 +10,33 @@ import VoiceRecorder from './VoiceRecorder';
 import Link from 'next/link';
 import RewardSystem from '../achievements/RewardSystem';
 
+// Add type definitions for profile and quizzes
+interface UserProfile {
+  avatarUrl?: string;
+  location?: string;
+  goals?: string;
+}
+
+interface Achievement {
+  title: string;
+}
+
+interface Profile {
+  id: number;
+  name: string;
+  email: string;
+  profile?: UserProfile | null;
+  achievements?: Achievement[];
+}
+
+interface Quiz {
+  id: number;
+  question: string;
+  createdAt: string;
+  correctAnswers?: number;
+  totalAnswers?: number;
+}
+
 // Memoized loading component
 const LoadingSpinner = memo(() => (
   <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
@@ -85,9 +112,9 @@ const QuickActionButton = memo(({
 QuickActionButton.displayName = 'QuickActionButton';
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [quizzes, setQuizzes] = useState([]);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [points, setPoints] = useState(0);
   const [level, setLevel] = useState(1);
   const [showRewards, setShowRewards] = useState(false);
@@ -315,15 +342,15 @@ export default function Dashboard() {
           {/* Profile Summary */}
           <div className="card-mobile flex flex-col items-center gap-4 w-full sm:w-auto">
             <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-2xl sm:text-4xl text-white font-bold mb-2">
-              {profile.profile?.avatarUrl ? (
+              {profile && profile.profile && profile.profile.avatarUrl ? (
                 <img src={profile.profile.avatarUrl} alt="avatar" className="w-16 h-16 sm:w-24 sm:h-24 rounded-full object-cover" />
               ) : (
-                profile.name[0]
+                profile ? profile.name[0] : ''
               )}
             </div>
-            <div className="text-white mobile-text font-semibold">{profile.name}</div>
-            <div className="text-gray-300 text-sm">{profile.email}</div>
-            <div className="text-gray-400 text-sm">{profile.profile?.location || 'Unknown'}</div>
+            <div className="text-white mobile-text font-semibold">{profile ? profile.name : ''}</div>
+            <div className="text-gray-300 text-sm">{profile ? profile.email : ''}</div>
+            <div className="text-gray-400 text-sm">{profile && profile.profile && profile.profile.location ? profile.profile.location : 'Unknown'}</div>
             <Link href="/profile" className="mt-2 text-cyan-400 hover:underline mobile-text">View Full Profile</Link>
           </div>
         </div>
@@ -402,8 +429,9 @@ export default function Dashboard() {
           <ProgressTracker user={{
             ...userProgress,
             progress: quizzesCompleted * 20,
-            badges: profile.achievements?.map(a => a.title) || [],
-            goal: profile.profile?.goals || 'No goal set',
+            badges: profile?.achievements?.map(a => a.title) || [],
+            goal: profile && profile.profile && profile.profile.goals ? profile.profile.goals : 'No goal set',
+            location: profile && profile.profile && profile.profile.location ? profile.profile.location : 'Unknown',
           }} />
         </div>
 
